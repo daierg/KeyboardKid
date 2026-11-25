@@ -85,7 +85,7 @@ interface UpdateProgressEvent {
   info: UpdateInfo | null;
 }
 
-const DISMISSED_UPDATE_STORAGE_KEY = 'kurocat_dismissed_update_version';
+const DISMISSED_UPDATE_STORAGE_KEY = 'keyboardkid_dismissed_update_version';
 
 function isMacPlatform(): boolean {
   return /Mac/i.test(navigator.platform) || /Macintosh/i.test(navigator.userAgent);
