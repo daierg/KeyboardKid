@@ -188,6 +188,16 @@ export function resolveCustomSkin(raw: CatSkinConfig): ResolvedSkin {
 
 export const DEFAULT_BUILTIN_CATS: CatSkinConfig[] = [
   {
+    id: 'xixi',
+    name: '西西',
+    emoji: '🎀',
+    builtin: true,
+    furColor: '#f5efe6',
+    eyeColorTop: '#4a3728',
+    accentColor: '#f4a6b8',
+    accentSideColor: '#d47890',
+  },
+  {
     id: 'kid',
     name: 'KeyboardKid',
     emoji: '🧒',

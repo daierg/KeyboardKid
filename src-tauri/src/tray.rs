@@ -136,6 +136,8 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
         &[&obs_toggle, &obs_hide_pet, &obs_open_browser],
     )?;
 
+    let breed_xixi = MenuItem::with_id(app, "breed_xixi", "🎀 西西", true, None::<&str>)?;
+    let breed_kid = MenuItem::with_id(app, "breed_kid", "🧒 KeyboardKid", true, None::<&str>)?;
     let breed_black = MenuItem::with_id(app, "breed_black", "经典小黑猫", true, None::<&str>)?;
     let breed_ragdoll = MenuItem::with_id(app, "breed_ragdoll", "暖奶茶布偶猫", true, None::<&str>)?;
     let breed_orange = MenuItem::with_id(app, "breed_orange", "大橘猫（虎斑）", true, None::<&str>)?;
@@ -148,6 +150,8 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
         "角色外观",
         true,
         &[
+            &breed_xixi,
+            &breed_kid,
             &breed_black,
             &breed_ragdoll,
             &breed_orange,
@@ -586,6 +590,8 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
                     let _ = mcp_toggle.set_checked(enabled);
                     let _ = app.emit("kuro-settings", s.clone());
                 }
+                "breed_xixi" => apply_breed_and_save(app, "xixi"),
+                "breed_kid" => apply_breed_and_save(app, "kid"),
                 "breed_black" => apply_breed_and_save(app, "black"),
                 "breed_ragdoll" => apply_breed_and_save(app, "ragdoll"),
                 "breed_orange" => apply_breed_and_save(app, "orange-tabby"),

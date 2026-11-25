@@ -57,15 +57,15 @@ jobs:
           $ver = $tag.TrimStart('v')
           $nsis = Get-ChildItem "src-tauri/target/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
           if ($nsis) {
-            Copy-Item $nsis.FullName "KuroCat-$ver-x64-setup.exe"
+            Copy-Item $nsis.FullName "KeyboardKid-$ver-x64-setup.exe"
           }
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kurocat-windows-x64
+          name: keyboardkid-windows-x64
           path: |
-            KuroCat-*-x64-setup.exe
+            KeyboardKid-*-x64-setup.exe
 
       - name: Publish Windows assets to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -73,7 +73,7 @@ jobs:
         with:
           draft: true
           files: |
-            KuroCat-*-x64-setup.exe
+            KeyboardKid-*-x64-setup.exe
 
   build-macos:
     if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.linux_only) }}
@@ -120,33 +120,33 @@ jobs:
               TAG="v$(node -p "require('./package.json').version")"
             fi
           fi
-          APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/KuroCat.app"
+          APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/KeyboardKid.app"
           test -d "$APP_PATH"
           echo "=== Verify macOS minimum version & Universal slices ==="
           plutil -p "$APP_PATH/Contents/Info.plist" | grep -i MinimumSystemVersion || true
-          lipo -info "$APP_PATH/Contents/MacOS/KuroCat"
-          otool -arch x86_64 -l "$APP_PATH/Contents/MacOS/KuroCat" | grep -A4 -E "LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX" || true
-          otool -arch arm64 -l "$APP_PATH/Contents/MacOS/KuroCat" | grep -A4 -E "LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX" || true
+          lipo -info "$APP_PATH/Contents/MacOS/KeyboardKid"
+          otool -arch x86_64 -l "$APP_PATH/Contents/MacOS/KeyboardKid" | grep -A4 -E "LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX" || true
+          otool -arch arm64 -l "$APP_PATH/Contents/MacOS/KeyboardKid" | grep -A4 -E "LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX" || true
           echo "=== Sign every architecture with a stable identity ==="
           scripts/macos-codesign.sh sign "$APP_PATH"
           REQUIREMENT="$(scripts/macos-codesign.sh requirement "$APP_PATH")"
           mkdir -p dmg_staging
           cp -R "$APP_PATH" dmg_staging/
           ln -s /Applications dmg_staging/Applications
-          hdiutil create -volname "KuroCat" -srcfolder dmg_staging -ov -format UDZO "KuroCat-${TAG}-macos-universal.dmg"
-          tar -czf "KuroCat-${TAG}-macos-universal.app.tar.gz" -C "src-tauri/target/universal-apple-darwin/release/bundle/macos" "KuroCat.app"
-          ls -lh "KuroCat-${TAG}-macos-universal.dmg" "KuroCat-${TAG}-macos-universal.app.tar.gz"
+          hdiutil create -volname "KeyboardKid" -srcfolder dmg_staging -ov -format UDZO "KeyboardKid-${TAG}-macos-universal.dmg"
+          tar -czf "KeyboardKid-${TAG}-macos-universal.app.tar.gz" -C "src-tauri/target/universal-apple-darwin/release/bundle/macos" "KeyboardKid.app"
+          ls -lh "KeyboardKid-${TAG}-macos-universal.dmg" "KeyboardKid-${TAG}-macos-universal.app.tar.gz"
           echo "=== Verify the app inside each release artifact ==="
-          scripts/macos-codesign.sh verify-artifact "KuroCat-${TAG}-macos-universal.dmg" "$REQUIREMENT"
-          scripts/macos-codesign.sh verify-artifact "KuroCat-${TAG}-macos-universal.app.tar.gz" "$REQUIREMENT"
+          scripts/macos-codesign.sh verify-artifact "KeyboardKid-${TAG}-macos-universal.dmg" "$REQUIREMENT"
+          scripts/macos-codesign.sh verify-artifact "KeyboardKid-${TAG}-macos-universal.app.tar.gz" "$REQUIREMENT"
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kurocat-macos-universal
+          name: keyboardkid-macos-universal
           path: |
-            KuroCat-*-macos-universal.dmg
-            KuroCat-*-macos-universal.app.tar.gz
+            KeyboardKid-*-macos-universal.dmg
+            KeyboardKid-*-macos-universal.app.tar.gz
 
       - name: Publish macOS assets to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -154,8 +154,8 @@ jobs:
         with:
           draft: true
           files: |
-            KuroCat-*-macos-universal.dmg
-            KuroCat-*-macos-universal.app.tar.gz
+            KeyboardKid-*-macos-universal.dmg
+            KeyboardKid-*-macos-universal.app.tar.gz
 
   build-linux:
     if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.macos_only) }}
@@ -220,7 +220,7 @@ jobs:
 
       - name: Smoke-test Linux binary and inspect ELF / .deb metadata
         run: |
-          BIN="src-tauri/target/release/KuroCat"
+          BIN="src-tauri/target/release/KeyboardKid"
           test -x "$BIN"
           echo "=== Dynamic libraries ==="
           ldd "$BIN"
@@ -229,7 +229,7 @@ jobs:
           echo "=== MCP stdio live smoke test ==="
           RESP=$(printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"ci","version":"1"}}}\n' | "$BIN" --mcp)
           echo "$RESP"
-          echo "$RESP" | grep -q '"name":"kurocat"'
+          echo "$RESP" | grep -q '"name":"keyboardkid"'
           echo "=== DEB metadata ==="
           DEB=$(ls src-tauri/target/release/bundle/deb/*.deb | head -n 1)
           dpkg-deb -I "$DEB"
@@ -247,20 +247,20 @@ jobs:
           fi
           ARCH="${{ matrix.arch }}"
           DEB=$(ls src-tauri/target/release/bundle/deb/*.deb | head -n 1)
-          cp "$DEB" "KuroCat-${TAG}-linux-${ARCH}.deb"
+          cp "$DEB" "KeyboardKid-${TAG}-linux-${ARCH}.deb"
           APPIMG=$(ls src-tauri/target/release/bundle/appimage/*.AppImage 2>/dev/null | head -n 1 || true)
           if [[ -n "$APPIMG" && -f "$APPIMG" ]]; then
-            cp "$APPIMG" "KuroCat-${TAG}-linux-${ARCH}.AppImage"
+            cp "$APPIMG" "KeyboardKid-${TAG}-linux-${ARCH}.AppImage"
           fi
-          ls -lh KuroCat-${TAG}-linux-${ARCH}.*
+          ls -lh KeyboardKid-${TAG}-linux-${ARCH}.*
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kurocat-linux-${{ matrix.arch }}
+          name: keyboardkid-linux-${{ matrix.arch }}
           path: |
-            KuroCat-*-linux-${{ matrix.arch }}.deb
-            KuroCat-*-linux-${{ matrix.arch }}.AppImage
+            KeyboardKid-*-linux-${{ matrix.arch }}.deb
+            KeyboardKid-*-linux-${{ matrix.arch }}.AppImage
 
       - name: Publish Linux assets to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -268,5 +268,5 @@ jobs:
         with:
           draft: true
           files: |
-            KuroCat-*-linux-${{ matrix.arch }}.deb
-            KuroCat-*-linux-${{ matrix.arch }}.AppImage
+            KeyboardKid-*-linux-${{ matrix.arch }}.deb
+            KeyboardKid-*-linux-${{ matrix.arch }}.AppImage

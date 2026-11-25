@@ -967,7 +967,11 @@ pub fn apply_breed_and_save(app: &AppHandle, breed: &str) {
     let state = app.state::<AppState>();
     let updated = {
         let mut s = state.settings.lock().unwrap();
-        s.cat_breed = normalized;
+        s.cat_breed = normalized.clone();
+        // 西西手臂烘焙在表情图里，关闭尾巴拍键。
+        if normalized == "xixi" {
+            s.tail_key_mode = "off".to_string();
+        }
         save_settings(&s);
         s.clone()
     };

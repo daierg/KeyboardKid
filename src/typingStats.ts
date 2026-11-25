@@ -1,22 +1,24 @@
 export interface TypingSnapshot {
-  wpm: number;
+  /** Instantaneous characters per minute (rolling window). */
   cpm: number;
   cps: number;
-  todayKeys: number;
+  /** Characters typed today (key-down events counted as chars). */
+  todayChars: number;
+  todayPeakCpm: number;
   todayActiveMs: number;
   day: string; // YYYY-MM-DD local
 }
 
 interface PersistedStats {
   day: string;
-  todayKeys: number;
+  todayChars: number;
+  todayPeakCpm: number;
   todayActiveMs: number;
-  history: Record<string, { keys: number; activeMs: number }>;
+  history: Record<string, { chars: number; peakCpm: number; activeMs: number }>;
 }
 
 const STORAGE_KEY = 'keyboardkid_typing_stats_v1';
 const WINDOW_MS = 5000;
-const CHARS_PER_WORD = 5;
 
 function localDayKey(d = new Date()): string {
   const y = d.getFullYear();
@@ -29,20 +31,34 @@ function loadPersisted(): PersistedStats {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as PersistedStats;
+      const parsed = JSON.parse(raw) as PersistedStats & {
+        todayKeys?: number;
+        history?: Record<string, { keys?: number; chars?: number; peakCpm?: number; activeMs?: number }>;
+      };
       if (parsed && typeof parsed.day === 'string') {
+        const history: PersistedStats['history'] = {};
+        if (parsed.history && typeof parsed.history === 'object') {
+          for (const [k, v] of Object.entries(parsed.history)) {
+            history[k] = {
+              chars: Number(v.chars ?? v.keys) || 0,
+              peakCpm: Number(v.peakCpm) || 0,
+              activeMs: Number(v.activeMs) || 0,
+            };
+          }
+        }
         return {
           day: parsed.day,
-          todayKeys: Number(parsed.todayKeys) || 0,
+          todayChars: Number(parsed.todayChars ?? parsed.todayKeys) || 0,
+          todayPeakCpm: Number(parsed.todayPeakCpm) || 0,
           todayActiveMs: Number(parsed.todayActiveMs) || 0,
-          history: parsed.history && typeof parsed.history === 'object' ? parsed.history : {},
+          history,
         };
       }
     }
   } catch {
     // ignore
   }
-  return { day: localDayKey(), todayKeys: 0, todayActiveMs: 0, history: {} };
+  return { day: localDayKey(), todayChars: 0, todayPeakCpm: 0, todayActiveMs: 0, history: {} };
 }
 
 function savePersisted(data: PersistedStats): void {
@@ -54,7 +70,7 @@ function savePersisted(data: PersistedStats): void {
 }
 
 /**
- * Rolling WPM/CPM/CPS + all-day key counters.
+ * Rolling CPM/CPS + all-day character counters and peak speed.
  * Counts key-down events only (no key text content is stored).
  */
 export class TypingStats {
@@ -98,7 +114,13 @@ export class TypingStats {
       this.persisted.todayActiveMs += Math.min(now - this.lastKeyAt, 2000);
     }
     this.lastKeyAt = now;
-    this.persisted.todayKeys += 1;
+    this.persisted.todayChars += 1;
+
+    const cpm = this.instantCpm(now);
+    if (cpm > this.persisted.todayPeakCpm) {
+      this.persisted.todayPeakCpm = cpm;
+    }
+
     if (now - this.lastPersistAt > 2500) {
       this.flush();
       this.lastPersistAt = now;
@@ -108,7 +130,8 @@ export class TypingStats {
   public flush(): void {
     this.rolloverIfNeeded();
     this.persisted.history[this.persisted.day] = {
-      keys: this.persisted.todayKeys,
+      chars: this.persisted.todayChars,
+      peakCpm: this.persisted.todayPeakCpm,
       activeMs: this.persisted.todayActiveMs,
     };
     savePersisted(this.persisted);
@@ -116,18 +139,16 @@ export class TypingStats {
 
   public snapshot(now = performance.now()): TypingSnapshot {
     this.rolloverIfNeeded();
-    while (this.keyTimes.length > 0 && now - this.keyTimes[0] > WINDOW_MS) {
-      this.keyTimes.shift();
+    const cpm = this.instantCpm(now);
+    if (cpm > this.persisted.todayPeakCpm) {
+      this.persisted.todayPeakCpm = cpm;
     }
-    const n = this.keyTimes.length;
-    const cps = n / (WINDOW_MS / 1000);
-    const cpm = cps * 60;
-    const wpm = cpm / CHARS_PER_WORD;
+    const cps = Math.round((cpm / 60) * 10) / 10;
     return {
-      wpm: Math.round(wpm),
-      cpm: Math.round(cpm),
-      cps: Math.round(cps * 10) / 10,
-      todayKeys: this.persisted.todayKeys,
+      cpm,
+      cps,
+      todayChars: this.persisted.todayChars,
+      todayPeakCpm: this.persisted.todayPeakCpm,
       todayActiveMs: this.persisted.todayActiveMs,
       day: this.persisted.day,
     };
@@ -135,28 +156,45 @@ export class TypingStats {
 
   public formatHud(now = performance.now()): string {
     const s = this.snapshot(now);
-    const keys =
-      s.todayKeys >= 10000
-        ? `${(s.todayKeys / 1000).toFixed(1)}k`
-        : s.todayKeys.toLocaleString('en-US');
-    return `${s.wpm} WPM · 今日 ${keys}`;
+    return `${s.cpm}字/分`;
+  }
+
+  public formatMenuTodayChars(): string {
+    const n = this.snapshot().todayChars;
+    const label =
+      n >= 10000 ? `${(n / 1000).toFixed(1)}k` : n.toLocaleString('zh-CN');
+    return `${label} 字`;
+  }
+
+  public formatMenuPeak(): string {
+    return `${this.snapshot().todayPeakCpm} 字/分`;
+  }
+
+  private instantCpm(now: number): number {
+    while (this.keyTimes.length > 0 && now - this.keyTimes[0] > WINDOW_MS) {
+      this.keyTimes.shift();
+    }
+    const n = this.keyTimes.length;
+    const cps = n / (WINDOW_MS / 1000);
+    return Math.round(cps * 60);
   }
 
   private rolloverIfNeeded(): void {
     const today = localDayKey();
     if (this.persisted.day !== today) {
       this.persisted.history[this.persisted.day] = {
-        keys: this.persisted.todayKeys,
+        chars: this.persisted.todayChars,
+        peakCpm: this.persisted.todayPeakCpm,
         activeMs: this.persisted.todayActiveMs,
       };
-      // Keep last 14 days
       const keys = Object.keys(this.persisted.history).sort();
       while (keys.length > 14) {
         const old = keys.shift();
         if (old) delete this.persisted.history[old];
       }
       this.persisted.day = today;
-      this.persisted.todayKeys = 0;
+      this.persisted.todayChars = 0;
+      this.persisted.todayPeakCpm = 0;
       this.persisted.todayActiveMs = 0;
       savePersisted(this.persisted);
     }

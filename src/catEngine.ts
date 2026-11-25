@@ -11,10 +11,11 @@ import { catAudio } from './audio';
 import { resolveCustomSkin, type CatSkinConfig, type ResolvedSkin } from './catSkins';
 import { DaFeiYuRenderer, type DaFeiYuLayout } from './dafeiyuRenderer';
 import { KidRenderer, type KidAssetMap, type KidLayout } from './kidRenderer';
+import { XiXiRenderer, type XiXiLayout } from './xixiRenderer';
 
 export const LOGICAL_W = 420;
 export const LOGICAL_H = 440;
-export type CatBreed = 'black' | 'ragdoll' | 'dafeiyu' | 'kid';
+export type CatBreed = 'black' | 'ragdoll' | 'dafeiyu' | 'kid' | 'xixi';
 export type KeyboardOrientation = 'cat' | 'viewer';
 export type TailKeyMode = 'smart' | 'custom' | 'edge' | 'off';
 
@@ -250,6 +251,7 @@ export class KuroCatEngine {
   private embedded = false;
   private dafeiyu = new DaFeiYuRenderer();
   private kid = new KidRenderer();
+  private xixi = new XiXiRenderer();
   private catTail = {
     heldVks: new Set<number>(),
     targetX: 320,
@@ -272,6 +274,7 @@ export class KuroCatEngine {
     this.wakeRendering();
     this.privacyMode = active;
     this.dafeiyu.onPrivacyModeChanged(active);
+    this.xixi.onPrivacyModeChanged(active);
     if (active) {
       this.heldKeys.clear();
       this.catTail.heldVks.clear();
@@ -292,6 +295,8 @@ export class KuroCatEngine {
       this.dafeiyu.onPrivacyTyping();
     } else if (this.catBreed === 'kid') {
       this.kid.onPrivacyTyping();
+    } else if (this.catBreed === 'xixi') {
+      this.xixi.onPrivacyTyping();
     }
   }
 
@@ -361,6 +366,10 @@ export class KuroCatEngine {
     const targetPt = this.getTailTargetPoint(spec);
     if (this.catBreed === 'dafeiyu') {
       this.dafeiyu.triggerTailPreview(targetPt, this.buildDaFeiYuLayout());
+      return;
+    }
+    if (this.catBreed === 'xixi') {
+      // No tail — arms are baked into expression sprites.
       return;
     }
     if (!this.catTail.active && this.catTail.reach < 0.08) {
@@ -552,7 +561,7 @@ export class KuroCatEngine {
   }
 
   private syncLayoutPositions(): void {
-    const isBigFish = this.catBreed === 'dafeiyu';
+    const isBigFish = this.catBreed === 'dafeiyu' || this.catBreed === 'xixi';
     if (this.keyboardLayout === '108') {
       this.logicalW = 540;
       this.logicalH = 456;
@@ -583,7 +592,11 @@ export class KuroCatEngine {
   }
 
   public setCatAppearance(breedId: string, skin?: CatSkinConfig | null): void {
-    if (breedId === 'kid') {
+    if (breedId === 'xixi') {
+      this.catBreed = 'xixi';
+      this.customSkin = null;
+      catAudio.setPurrIntensity(0);
+    } else if (breedId === 'kid') {
       this.catBreed = 'kid';
       this.customSkin = null;
       catAudio.setPurrIntensity(0);
@@ -689,6 +702,11 @@ export class KuroCatEngine {
       sleepAmount: this.sleepAmount,
       petEnergy: this.petEnergy,
     };
+  }
+
+  private buildXiXiLayout(): XiXiLayout {
+    // Same payload shape as DaFeiYu for shared keyboard/mouse positioning.
+    return this.buildDaFeiYuLayout();
   }
 
   // Dynamic logical proportions (65% compact = 420x440; 108-key full-size = 540x456)
@@ -985,7 +1003,13 @@ export class KuroCatEngine {
   }
 
   private pokeAnnoy(amount: number, now: number): void {
-    if (this.catBreed === 'dafeiyu' || this.catBreed === 'kid' || this.privacyMode) return;
+    if (
+      this.catBreed === 'dafeiyu' ||
+      this.catBreed === 'kid' ||
+      this.catBreed === 'xixi' ||
+      this.privacyMode
+    )
+      return;
     this.annoy = Math.max(0, Math.min(1, this.annoy + amount));
     this.lastPokeAt = now;
   }
@@ -1003,7 +1027,7 @@ export class KuroCatEngine {
   }
 
   private recordPointerSpeed(nx: number, ny: number, now: number): void {
-    if (this.catBreed === 'dafeiyu' || this.privacyMode) return;
+    if (this.catBreed === 'dafeiyu' || this.catBreed === 'xixi' || this.privacyMode) return;
     const gapMs = now - this.lastPointerSampleAt;
     if (
       this.lastPointerSampleX !== null &&
@@ -1177,6 +1201,18 @@ export class KuroCatEngine {
       return;
     }
 
+    if (this.catBreed === 'xixi') {
+      // Hands only — never route keys to tail.
+      this.xixi.onKeyDown(vk, rawKeyPt, this.buildXiXiLayout(), repeat);
+      if (this.showKeyBubbles) {
+        const label = formatBubbleForVk(vk, spec);
+        if (label) {
+          this.spawnBubble(label, spec.id === 'space', rawKeyPt.x, now);
+        }
+      }
+      return;
+    }
+
     if (this.catBreed === 'kid') {
       this.kid.onKeyPulse(now);
       if (this.showKeyBubbles) {
@@ -1326,6 +1362,7 @@ export class KuroCatEngine {
 
   public onKeyUp(vk: number): void {
     this.dafeiyu.onKeyUp(vk);
+    this.xixi.onKeyUp(vk);
     this.heldKeys.delete(vk);
     if (this.catTail.heldVks.has(vk)) {
       this.catTail.heldVks.delete(vk);
@@ -1376,8 +1413,9 @@ export class KuroCatEngine {
     if (!this.embedded) {
       this.recordPointerSpeed(nx, ny, now);
     }
-    this.mouseTargetOffsetX = (nx - 0.5) * (this.catBreed === 'dafeiyu' ? 14 : 20);
-    this.mouseTargetOffsetY = (ny - 0.5) * (this.catBreed === 'dafeiyu' ? 11 : 18);
+    const bigLayout = this.catBreed === 'dafeiyu' || this.catBreed === 'xixi';
+    this.mouseTargetOffsetX = (nx - 0.5) * (bigLayout ? 14 : 20);
+    this.mouseTargetOffsetY = (ny - 0.5) * (bigLayout ? 11 : 18);
     this.lastMouseMoveAt = now;
 
     this.leftPaw.mode = 'mouse';
@@ -1467,6 +1505,10 @@ export class KuroCatEngine {
     if (this.catBreed === 'kid') {
       this.kid.onMousePulse(now);
     }
+    if (this.catBreed === 'xixi') {
+      this.xixi.resetLeftHandForMouse();
+      this.xixi.onMouseAction(now);
+    }
     this.leftPaw.mode = 'mouse';
     this.leftPaw.impactSquash = 0.72;
     this.leftPaw.lastActiveAt = now;
@@ -1494,6 +1536,10 @@ export class KuroCatEngine {
     this.lastMouseClickAt = now;
     this.dafeiyu.resetLeftHandForMouse();
     this.dafeiyu.onMouseAction(now);
+    if (this.catBreed === 'xixi') {
+      this.xixi.resetLeftHandForMouse();
+      this.xixi.onMouseAction(now);
+    }
     this.leftPaw.mode = 'mouse';
     this.leftPaw.lastActiveAt = now;
   }
@@ -1775,7 +1821,8 @@ export class KuroCatEngine {
       now - this.lastAnyKeyAt < 650 ||
       this.heldKeys.size > 0 ||
       this.catTail.heldVks.size > 0;
-    const isCatMode = this.catBreed !== 'dafeiyu' && this.catBreed !== 'kid';
+    const isCatMode =
+      this.catBreed !== 'dafeiyu' && this.catBreed !== 'kid' && this.catBreed !== 'xixi';
 
     // 1) Alive cat emotional states: sleep (loaf + Zzz), curious (laser-pointer eyes), annoy -> cross (airplane ears + tail desk-thump), idle fidgets!
     const sleepAfterMs = this.embedded ? 18_000 : 28_000;
@@ -1957,7 +2004,13 @@ export class KuroCatEngine {
     const wantPrivacy = this.privacyMode ? 1 : 0;
     this.privacyClose += (wantPrivacy - this.privacyClose) * (1 - Math.exp(-14 * dt));
     catAudio.setPurrIntensity(
-      this.catBreed !== 'dafeiyu' && !this.privacyMode && this.squintAmount > 0.25 ? this.squintAmount : 0,
+      this.catBreed !== 'dafeiyu' &&
+        this.catBreed !== 'xixi' &&
+        this.catBreed !== 'kid' &&
+        !this.privacyMode &&
+        this.squintAmount > 0.25
+        ? this.squintAmount
+        : 0,
     );
 
     // Dynamic ear spring (5.2Hz, damping 0.36): perks up when curious/excited, flattens into airplane ears when cross!
@@ -1972,6 +2025,8 @@ export class KuroCatEngine {
 
     if (this.catBreed === 'dafeiyu') {
       this.dafeiyu.update(dt, now, this.buildDaFeiYuLayout());
+    } else if (this.catBreed === 'xixi') {
+      this.xixi.update(dt, now, this.buildXiXiLayout());
     } else if (this.catBreed === 'kid') {
       this.kid.update(dt, now, this.buildKidLayout());
     } else {
@@ -2294,6 +2349,21 @@ export class KuroCatEngine {
       this.drawMiniMouse(ctx);
       this.drawKeyboard(ctx);
       this.dafeiyu.renderForeground(ctx, this.lastDt, now, layout);
+      if (this.showKeyBubbles && !this.privacyMode) {
+        this.drawKeyBubbles(ctx);
+        this.drawMouseBadges(ctx);
+      }
+      ctx.restore();
+      return;
+    }
+
+    if (this.catBreed === 'xixi') {
+      const now = performance.now();
+      const layout = this.buildXiXiLayout();
+      this.xixi.renderBody(ctx, now, layout);
+      this.drawMiniMouse(ctx);
+      this.drawKeyboard(ctx);
+      this.xixi.renderForeground(ctx, this.lastDt, now, layout);
       if (this.showKeyBubbles && !this.privacyMode) {
         this.drawKeyBubbles(ctx);
         this.drawMouseBadges(ctx);
@@ -3880,7 +3950,12 @@ export class KuroCatEngine {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const dots = performance.now() - this.privacyTypingAt < 350 ? ' • • •' : '';
-      const label = this.catBreed === 'dafeiyu' ? '🔒 非礼勿视 · 已隐藏按键' : '🔒 密码输入中 · 已隐藏按键';
+      const label =
+        this.catBreed === 'dafeiyu'
+          ? '🔒 非礼勿视 · 已隐藏按键'
+          : this.catBreed === 'xixi'
+            ? '🔒 西西闭眼中 · 已隐藏按键'
+            : '🔒 密码输入中 · 已隐藏按键';
       ctx.fillText(label + dots, 0, 0);
       ctx.restore();
     }

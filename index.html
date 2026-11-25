@@ -9,7 +9,7 @@
     <canvas id="pet-canvas"></canvas>
     <canvas id="pet-canvas-3d" class="hidden"></canvas>
 
-    <div id="stats-hud" class="stats-hud" aria-live="polite">0 WPM · 今日 0</div>
+    <div id="stats-hud" class="stats-hud" aria-live="polite">0字/分</div>
 
     <div id="update-toast" class="update-toast hidden" role="status" aria-live="polite">
       <span class="update-toast-text" id="update-toast-text">✨ 新版本</span>
@@ -46,7 +46,8 @@
       <div class="menu-scale-row">
         <span class="menu-scale-label">角色外观（支持 MCP 定制）</span>
         <div class="breed-pills" id="breed-pills">
-          <button class="breed-pill active" data-breed="kid">🧒 KeyboardKid</button>
+          <button class="breed-pill active" data-breed="xixi">🎀 西西</button>
+          <button class="breed-pill" data-breed="kid">🧒 KeyboardKid</button>
           <button class="breed-pill" data-breed="black">🐈‍⬛ 小黑猫</button>
           <button class="breed-pill" data-breed="ragdoll">🐱 布偶猫</button>
           <button class="breed-pill" data-breed="dafeiyu">🐳 大肥鱼</button>
@@ -95,9 +96,17 @@
         <span class="menu-check" id="chk-sound">✓</span>
       </button>
       <button class="menu-item" data-action="toggle-stats-hud">
-        <span>打字速度 / 今日统计</span>
+        <span>显示打字速度</span>
         <span class="menu-check" id="chk-stats-hud">✓</span>
       </button>
+      <div class="menu-item menu-item-static" aria-hidden="true">
+        <span>今日输入</span>
+        <span class="menu-hint" id="stats-today-chars">0 字</span>
+      </div>
+      <div class="menu-item menu-item-static" aria-hidden="true">
+        <span>今日最快</span>
+        <span class="menu-hint" id="stats-today-peak">0 字/分</span>
+      </div>
       <button class="menu-item" data-action="open-kid-assets">
         <span>打开素材文件夹</span>
         <span class="menu-hint">idle / privacy</span>

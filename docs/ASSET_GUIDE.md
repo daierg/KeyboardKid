@@ -1,8 +1,18 @@
-# KeyboardKid 素材指南（两图 MVP）
+# KeyboardKid 素材指南
 
-## 当前需要的文件
+## 默认皮肤「西西」（大肥鱼式五表情）
 
-默认内置：
+目录 `src/assets/xixi/`（224×278，手臂烘焙在图内，无程序手臂/尾巴）：
+
+| 文件 | 触发 |
+|------|------|
+| `idle.png` | 默认态（与 `typing.png` 同图） |
+| `blink.png` | 定时眨眼（缓入缓出叠化） |
+| `privacy.png` | 输密码闭眼 |
+| `typing.png` | 正常打字速度 |
+| `typing_fast.png` | 快速打字 / 摸头开心 |
+
+## 旧两图 MVP（kid）
 
 - `src/assets/kid/idle.png` — 常态整图（已去黑底）
 - `src/assets/kid/privacy.png` — 输密码整图（透明底）

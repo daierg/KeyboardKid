@@ -141,13 +141,13 @@ let settings: AppSettings = {
   showKeyBubbles: true,
   soundEnabled: true,
   autostart: false,
-  catBreed: 'kid',
+  catBreed: 'xixi',
   mcpEnabled: true,
   mcpPort: 27420,
   keyboardLayout: '65',
   keyboardOrientation: 'cat',
   privacyPasswordGuard: true,
-  tailKeyMode: 'smart',
+  tailKeyMode: 'off',
   tailKeyIds: [...DEFAULT_TAIL_KEY_IDS],
   renderMode: '2d',
   collarColor: 'none',
@@ -178,6 +178,8 @@ const tailKeysCountEl = document.getElementById('tail-keys-count') as HTMLSpanEl
 const engine = new KuroCatEngine(canvas);
 const statsHudEl = document.getElementById('stats-hud') as HTMLDivElement;
 const chkStatsHudEl = document.getElementById('chk-stats-hud') as HTMLSpanElement | null;
+const statsTodayCharsEl = document.getElementById('stats-today-chars') as HTMLSpanElement | null;
+const statsTodayPeakEl = document.getElementById('stats-today-peak') as HTMLSpanElement | null;
 const kidAssetsHintEl = document.getElementById('kid-assets-hint') as HTMLSpanElement | null;
 
 function syncStatsHud(): void {
@@ -187,6 +189,8 @@ function syncStatsHud(): void {
   if (visible) {
     statsHudEl.textContent = typingStats.formatHud();
   }
+  if (statsTodayCharsEl) statsTodayCharsEl.textContent = typingStats.formatMenuTodayChars();
+  if (statsTodayPeakEl) statsTodayPeakEl.textContent = typingStats.formatMenuPeak();
 }
 
 async function applyKidAssetsFromDisk(reload = false): Promise<void> {
@@ -210,7 +214,12 @@ let privacyActive = false;
 let gameActive = false;
 
 function shouldWearHeadphonesNow(): boolean {
-  if (settings.catBreed === 'dafeiyu' || settings.catBreed === 'kid') return false;
+  if (
+    settings.catBreed === 'dafeiyu' ||
+    settings.catBreed === 'kid' ||
+    settings.catBreed === 'xixi'
+  )
+    return false;
   const hm: HeadphoneMode =
     settings.headphoneMode === 'auto' || settings.headphoneMode === 'on'
       ? settings.headphoneMode
@@ -225,6 +234,7 @@ function wants3DNow(): boolean {
     settings.renderMode !== '2d' &&
     settings.catBreed !== 'dafeiyu' &&
     settings.catBreed !== 'kid' &&
+    settings.catBreed !== 'xixi' &&
     !tailPickerOpen &&
     !isWin7Ulw &&
     !webgl3dUnavailable
@@ -353,6 +363,7 @@ function syncMenuUI(): void {
   setCheck('chk-top', settings.alwaysOnTop);
   setCheck('chk-autostart', settings.autostart);
   setCheck('chk-mcp', settings.mcpEnabled);
+  syncStatsHud();
 
   if (!sliderDragging) {
     updateScaleSliderVisual(settings.scale);
@@ -404,7 +415,10 @@ function syncMenuUI(): void {
   if (collarRowEl) {
     collarRowEl.classList.toggle(
       'hidden',
-      renderMode === '2d' || settings.catBreed === 'dafeiyu' || settings.catBreed === 'kid',
+      renderMode === '2d' ||
+        settings.catBreed === 'dafeiyu' ||
+        settings.catBreed === 'kid' ||
+        settings.catBreed === 'xixi',
     );
   }
 
@@ -419,7 +433,9 @@ function syncMenuUI(): void {
   if (headphoneRowEl) {
     headphoneRowEl.classList.toggle(
       'hidden',
-      settings.catBreed === 'dafeiyu' || settings.catBreed === 'kid',
+      settings.catBreed === 'dafeiyu' ||
+        settings.catBreed === 'kid' ||
+        settings.catBreed === 'xixi',
     );
   }
 
@@ -431,7 +447,7 @@ function syncMenuUI(): void {
   }
 
   engine.showKeyBubbles = settings.showKeyBubbles;
-  engine.setCatAppearance(activeCat?.id || 'kid', activeCat);
+  engine.setCatAppearance(activeCat?.id || 'xixi', activeCat);
   engine.setHeadphones(shouldWearHeadphonesNow());
   engine.setKeyboardConfig(kbLayout, kbOrient);
   engine.setTailKeyConfig(tailMode, tailIds);
@@ -1248,7 +1264,12 @@ async function bootstrap(): Promise<void> {
 
     const breedAttr = target.dataset.breed;
     if (breedAttr) {
-      void applySettingsPatch({ catBreed: breedAttr });
+      const patch: Partial<AppSettings> = { catBreed: breedAttr };
+      if (breedAttr === 'xixi') {
+        // 西西皮肤手臂已烘焙进表情图，取消尾巴拍键。
+        patch.tailKeyMode = 'off';
+      }
+      void applySettingsPatch(patch);
       closeContextMenu();
       return;
     }
