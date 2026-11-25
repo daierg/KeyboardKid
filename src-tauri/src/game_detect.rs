@@ -1,4 +1,4 @@
-//! Lightweight, anti-cheat-safe automatic game detector for KuroCat gaming headphones.
+//! Lightweight, anti-cheat-safe automatic game detector for KeyboardKid gaming headphones.
 //!
 //! - Read-only foreground window/executable metadata query ONLY (never injects DLLs, never opens
 //!   game memory, uses `PROCESS_QUERY_LIMITED_INFORMATION` on Windows).
@@ -29,8 +29,8 @@ pub struct GameActivePayload {
 /// Known non-game apps (browsers, video players, office, chat, IDEs, streaming tools) that must
 /// NEVER trigger gaming headphones even when playing fullscreen video or running hardware acceleration.
 const EXCLUDED_EXES: &[&str] = &[
-    "kurocat.exe",
-    "kuro-cat-pet.exe",
+    "keyboardkid.exe",
+    "keyboard-kid.exe",
     "explorer.exe",
     "searchhost.exe",
     "shellexperiencehost.exe",
@@ -347,7 +347,7 @@ pub fn classify_macos_foreground(bundle_id: &str, app_name: &str) -> Option<Stri
         || bid.contains("obsproject")
         || bid.contains("videolan.vlc")
         || bid.contains("iina")
-        || bid.contains("kurocat")
+        || bid.contains("keyboardkid")
     {
         return None;
     }

@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 use tauri::{AppHandle, Emitter};
 
-const QIANYI_API_LATEST: &str = "https://qianyi.one/kurocat/releases/latest.json";
-const REPO_API_LATEST: &str = "https://api.github.com/repos/qianyiai/kurocat/releases/latest";
-const REPO_RELEASES_PAGE: &str = "https://github.com/qianyiai/kurocat/releases/latest";
+const QIANYI_API_LATEST: &str = "https://qianyi.one/keyboardkid/releases/latest.json";
+const REPO_API_LATEST: &str = "https://api.github.com/repos/qianyiai/keyboardkid/releases/latest";
+const REPO_RELEASES_PAGE: &str = "https://github.com/qianyiai/keyboardkid/releases/latest";
 
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -587,7 +587,7 @@ mod winhttp_client {
 
 #[cfg(windows)]
 fn fetch_json_from_url(url: &str, accept: Option<&str>, timeout_ms: i32) -> Result<String, String> {
-    let ua = format!("KuroCat/{}", CURRENT_VERSION);
+    let ua = format!("KeyboardKid/{}", CURRENT_VERSION);
     let mut body = Vec::with_capacity(8192);
     winhttp_client::get_stream(url, &ua, accept, timeout_ms, |chunk| {
         if body.len() + chunk.len() > 2 * 1024 * 1024 {
@@ -637,7 +637,7 @@ fn fetch_json_from_url(url: &str, accept: &str, connect_secs: &str, max_secs: &s
             "--max-time",
             max_secs,
             "-H",
-            &format!("User-Agent: KuroCat/{}", CURRENT_VERSION),
+            &format!("User-Agent: KeyboardKid/{}", CURRENT_VERSION),
             "-H",
             accept,
             url,
@@ -755,7 +755,7 @@ fn download_and_verify_windows(url: &str, dest: &PathBuf, expected_sha256: Optio
     let mut file = std::fs::File::create(&part_path)
         .map_err(|e| format!("无法创建下载临时文件: {}", e))?;
 
-    let ua = format!("KuroCat/{}", CURRENT_VERSION);
+    let ua = format!("KeyboardKid/{}", CURRENT_VERSION);
     let mut hasher = Sha256::new();
     let mut total_bytes: u64 = 0;
 
@@ -826,7 +826,7 @@ fn install_windows_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), Stri
     let asset_name = info
         .asset_name
         .as_deref()
-        .unwrap_or("KuroCat-update.exe");
+        .unwrap_or("KeyboardKid-update.exe");
 
     emit_progress(
         app,
@@ -835,7 +835,7 @@ fn install_windows_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), Stri
         Some(info.clone()),
     );
 
-    let temp_dir = std::env::temp_dir().join("kurocat-updates");
+    let temp_dir = std::env::temp_dir().join("keyboardkid-updates");
     let _ = std::fs::create_dir_all(&temp_dir);
     let safe_name = asset_name.replace(['\\', '/', ':', '*', '?', '"', '<', '>', '|'], "_");
     let target_file = temp_dir.join(safe_name);
@@ -921,7 +921,7 @@ fn install_macos_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), String
     let asset_name = info
         .asset_name
         .as_deref()
-        .unwrap_or("KuroCat-macos-universal.app.tar.gz");
+        .unwrap_or("KeyboardKid-macos-universal.app.tar.gz");
 
     if !asset_name.to_ascii_lowercase().ends_with(".tar.gz") {
         open_url_in_browser(url);
@@ -929,7 +929,7 @@ fn install_macos_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), String
     }
 
     let app_bundle = find_current_macos_app_bundle()
-        .unwrap_or_else(|| PathBuf::from("/Applications/KuroCat.app"));
+        .unwrap_or_else(|| PathBuf::from("/Applications/KeyboardKid.app"));
 
     emit_progress(
         app,
@@ -938,10 +938,10 @@ fn install_macos_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), String
         Some(info.clone()),
     );
 
-    let temp_dir = std::env::temp_dir().join(format!("kurocat-update-{}", info.latest_version));
+    let temp_dir = std::env::temp_dir().join(format!("keyboardkid-update-{}", info.latest_version));
     let _ = std::fs::remove_dir_all(&temp_dir);
     std::fs::create_dir_all(&temp_dir).map_err(|e| e.to_string())?;
-    let archive_path = temp_dir.join("KuroCat-update.app.tar.gz");
+    let archive_path = temp_dir.join("KeyboardKid-update.app.tar.gz");
 
     let dl = Command::new("/usr/bin/curl")
         .args([
@@ -951,9 +951,9 @@ fn install_macos_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), String
             "--max-time",
             "240",
             "-H",
-            &format!("User-Agent: KuroCat/{}", CURRENT_VERSION),
+            &format!("User-Agent: KeyboardKid/{}", CURRENT_VERSION),
             "-o",
-            archive_path.to_str().unwrap_or("/tmp/KuroCat-update.app.tar.gz"),
+            archive_path.to_str().unwrap_or("/tmp/KeyboardKid-update.app.tar.gz"),
             url,
         ])
         .output()
@@ -997,7 +997,7 @@ fn install_macos_update(app: &AppHandle, info: &UpdateInfo) -> Result<(), String
         return Err("解压更新包失败".to_string());
     }
 
-    // Find extracted .app (KuroCat.app or KuroCatPet.app)
+    // Find extracted .app (KeyboardKid.app or KeyboardKidPet.app)
     let new_app = std::fs::read_dir(&extract_dir)
         .ok()
         .and_then(|mut it| {
@@ -1145,18 +1145,18 @@ mod tests {
     fn qianyi_mirror_latest_json_parses_assets_and_digest() {
         let sample = r#"{
             "tag_name": "v9.9.9",
-            "html_url": "https://qianyi.one/kurocat/",
+            "html_url": "https://qianyi.one/keyboardkid/",
             "body": "Performance & UX update",
             "assets": [
                 {
-                    "name": "KuroCat-9.9.9-x64-setup.exe",
-                    "browser_download_url": "https://qianyi.one/kurocat/releases/v9.9.9/KuroCat-9.9.9-x64-setup.exe",
+                    "name": "KeyboardKid-9.9.9-x64-setup.exe",
+                    "browser_download_url": "https://qianyi.one/keyboardkid/releases/v9.9.9/KeyboardKid-9.9.9-x64-setup.exe",
                     "size": 2250000,
                     "digest": "sha256:05c1be2c444f5303770f6d59e216bc0ed7b69321fc44368e4ec231405570f950"
                 },
                 {
-                    "name": "KuroCat-9.9.9-macos-universal.app.tar.gz",
-                    "browser_download_url": "https://qianyi.one/kurocat/releases/v9.9.9/KuroCat-9.9.9-macos-universal.app.tar.gz",
+                    "name": "KeyboardKid-9.9.9-macos-universal.app.tar.gz",
+                    "browser_download_url": "https://qianyi.one/keyboardkid/releases/v9.9.9/KeyboardKid-9.9.9-macos-universal.app.tar.gz",
                     "size": 3100000,
                     "digest": "sha256:05c1be2c444f5303770f6d59e216bc0ed7b69321fc44368e4ec231405570f950"
                 }
@@ -1199,11 +1199,11 @@ mod tests {
     #[test]
     fn http_url_parser_handles_github_endpoints() {
         let (https, host, port, path) =
-            parse_http_url("https://api.github.com/repos/qianyiai/kurocat/releases/latest").unwrap();
+            parse_http_url("https://api.github.com/repos/qianyiai/keyboardkid/releases/latest").unwrap();
         assert!(https);
         assert_eq!(host, "api.github.com");
         assert_eq!(port, 443);
-        assert_eq!(path, "/repos/qianyiai/kurocat/releases/latest");
+        assert_eq!(path, "/repos/qianyiai/keyboardkid/releases/latest");
 
         let (https2, host2, port2, path2) =
             parse_http_url("http://127.0.0.1:8080/dl?v=1").unwrap();

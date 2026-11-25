@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn default_cat_breed() -> String {
-    "black".to_string()
+    "kid".to_string()
 }
 
 fn default_mcp_enabled() -> bool {
@@ -32,7 +32,7 @@ fn default_obs_hide_pet() -> bool {
 }
 
 pub fn default_render_mode() -> String {
-    "3d".to_string()
+    "2d".to_string()
 }
 
 pub fn normalize_render_mode(raw: &str) -> String {
@@ -224,7 +224,7 @@ pub fn app_data_dir() -> PathBuf {
         let base = std::env::var("APPDATA")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("."));
-        base.join("kuro-cat-pet")
+        base.join("keyboard-kid")
     }
     #[cfg(target_os = "macos")]
     {
@@ -233,14 +233,14 @@ pub fn app_data_dir() -> PathBuf {
             .unwrap_or_else(|_| PathBuf::from("."));
         home.join("Library")
             .join("Application Support")
-            .join("kuro-cat-pet")
+            .join("keyboard-kid")
     }
     #[cfg(all(not(windows), not(target_os = "macos")))]
     {
         let home = std::env::var("HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("."));
-        home.join(".config").join("kuro-cat-pet")
+        home.join(".config").join("keyboard-kid")
     }
 }
 
@@ -301,8 +301,8 @@ pub fn set_windows_autostart(enabled: bool) -> Result<(), String> {
     }
 
     let subkey = to_wide("Software\\Microsoft\\Windows\\CurrentVersion\\Run");
-    let value_name = to_wide("KuroCat");
-    let legacy_value_name = to_wide("KuroCatPet");
+    let value_name = to_wide("KeyboardKid");
+    let legacy_value_name = to_wide("KeyboardKid");
 
     unsafe {
         let mut hkey: HKEY = std::ptr::null_mut();
@@ -355,7 +355,7 @@ pub fn set_windows_autostart(enabled: bool) -> Result<(), String> {
 pub fn set_windows_autostart(enabled: bool) -> Result<(), String> {
     let home = std::env::var("HOME").map_err(|e| e.to_string())?;
     let agents_dir = PathBuf::from(home).join("Library").join("LaunchAgents");
-    let plist_path = agents_dir.join("com.kurocat.pet.plist");
+    let plist_path = agents_dir.join("com.keyboardkid.pet.plist");
 
     if enabled {
         fs::create_dir_all(&agents_dir).map_err(|e| e.to_string())?;
@@ -369,7 +369,7 @@ pub fn set_windows_autostart(enabled: bool) -> Result<(), String> {
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.kurocat.pet</string>
+    <string>com.keyboardkid.pet</string>
     <key>ProgramArguments</key>
     <array>
         <string>{}</string>
@@ -401,7 +401,7 @@ pub fn set_windows_autostart(enabled: bool) -> Result<(), String> {
             PathBuf::from(home).join(".config")
         });
     let autostart_dir = config_root.join("autostart");
-    let desktop_path = autostart_dir.join("kurocat.desktop");
+    let desktop_path = autostart_dir.join("keyboardkid.desktop");
 
     if enabled {
         fs::create_dir_all(&autostart_dir).map_err(|e| e.to_string())?;
@@ -412,10 +412,10 @@ pub fn set_windows_autostart(enabled: bool) -> Result<(), String> {
         let entry = format!(
             "[Desktop Entry]\n\
              Type=Application\n\
-             Name=KuroCat\n\
+             Name=KeyboardKid\n\
              Comment=Minimalist desktop cat typing & mouse companion\n\
              Exec=\"{exe}\"\n\
-             Icon=KuroCat\n\
+             Icon=KeyboardKid\n\
              Terminal=false\n\
              X-GNOME-Autostart-enabled=true\n",
             exe = exe.replace('"', "\\\"")
@@ -445,13 +445,13 @@ pub fn create_desktop_shortcut() -> Result<String, String> {
 
     let script = format!(
         "$desktop = [Environment]::GetFolderPath('Desktop'); \
-         $lnk = Join-Path $desktop 'KuroCat.lnk'; \
+         $lnk = Join-Path $desktop 'KeyboardKid.lnk'; \
          $ws = New-Object -ComObject WScript.Shell; \
          $s = $ws.CreateShortcut($lnk); \
          $s.TargetPath = '{exe}'; \
          $s.WorkingDirectory = '{wd}'; \
          $s.IconLocation = '{exe},0'; \
-         $s.Description = 'KuroCat Desktop Companion'; \
+         $s.Description = 'KeyboardKid Desktop Companion'; \
          $s.Save(); \
          Write-Output $lnk",
         exe = exe_str,

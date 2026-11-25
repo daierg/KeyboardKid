@@ -2,8 +2,8 @@
 
 fn main() {
     if std::env::args().any(|a| a == "--mcp") {
-        kuro_cat_pet_lib::run_mcp_stdio();
+        keyboard_kid_lib::run_mcp_stdio();
         return;
     }
-    kuro_cat_pet_lib::run();
+    keyboard_kid_lib::run();
 }

@@ -4,6 +4,7 @@ mod cats;
 mod config;
 mod game_detect;
 mod input_hook;
+mod kid_assets;
 #[cfg(target_os = "macos")]
 mod macos_window;
 mod mcp;
@@ -283,6 +284,16 @@ struct TailPickerBounds {
 }
 
 #[tauri::command]
+fn get_kid_assets() -> Result<kid_assets::KidAssetsPayload, String> {
+    kid_assets::load_kid_assets()
+}
+
+#[tauri::command]
+fn open_kid_assets_folder() -> Result<String, String> {
+    kid_assets::open_kid_assets_folder()
+}
+
+#[tauri::command]
 fn get_settings(state: State<'_, AppState>) -> AppSettings {
     state.settings.lock().unwrap().clone()
 }
@@ -302,10 +313,10 @@ fn get_mcp_config(state: State<'_, AppState>) -> String {
     let port = state.settings.lock().unwrap().mcp_port;
     let exe = std::env::current_exe()
         .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|_| "KuroCat.exe".to_string());
+        .unwrap_or_else(|_| "KeyboardKid.exe".to_string());
     serde_json::to_string_pretty(&serde_json::json!({
         "mcpServers": {
-            "kurocat": {
+            "keyboardkid": {
                 "command": exe,
                 "args": ["--mcp"],
                 "url": format!("http://127.0.0.1:{}/mcp", port)
@@ -575,7 +586,7 @@ async fn open_context_menu(app: AppHandle) -> Result<(), String> {
                 "menu",
                 tauri::WebviewUrl::App("menu.html".into()),
             )
-            .title("KuroCat Menu")
+            .title("KeyboardKid Menu")
             .inner_size(lw, lh)
             .decorations(false)
             .resizable(false)
@@ -592,7 +603,7 @@ async fn open_context_menu(app: AppHandle) -> Result<(), String> {
             {
                 Ok(w) => w,
                 Err(err) => {
-                    eprintln!("[kurocat] open_context_menu: failed to build menu window: {err}");
+                    eprintln!("[keyboardkid] open_context_menu: failed to build menu window: {err}");
                     return Err(err.to_string());
                 }
             };
@@ -2184,7 +2195,7 @@ fn win_configure_local_webview2_runtime() {
     {
         let udf = std::env::var_os("LOCALAPPDATA")
             .map(std::path::PathBuf::from)
-            .map(|base| base.join("KuroCat").join("EBWebView-Win7"))
+            .map(|base| base.join("KeyboardKid").join("EBWebView-Win7"))
             .unwrap_or_else(|| dir.join("WebView2Data"));
         let _ = std::fs::create_dir_all(&udf);
         std::env::set_var("WEBVIEW2_USER_DATA_FOLDER", &udf);
@@ -2456,6 +2467,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_settings,
+            get_kid_assets,
+            open_kid_assets_folder,
             get_cats,
             get_game_active,
             get_mcp_config,
@@ -2485,7 +2498,7 @@ pub fn run() {
             quit_app,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running KuroCat");
+        .expect("error while running KeyboardKid");
 }
 
 #[cfg(all(test, windows))]
@@ -2500,7 +2513,7 @@ mod windows_zorder_tests {
     #[test]
     fn detects_and_recovers_topmost_zorder_without_stealing_focus() {
         let class_name: Vec<u16> = "STATIC\0".encode_utf16().collect();
-        let title: Vec<u16> = "KuroCatZOrderTest\0".encode_utf16().collect();
+        let title: Vec<u16> = "KeyboardKidZOrderTest\0".encode_utf16().collect();
         unsafe {
             let hinst = GetModuleHandleW(std::ptr::null());
             let ex = WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;

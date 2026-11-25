@@ -13,10 +13,10 @@ fn default_tray_tooltip() -> &'static str {
     #[cfg(windows)]
     {
         if crate::win_is_elevated() {
-            return "KuroCat（管理员 · 游戏模式就绪）";
+            return "KeyboardKid（管理员 · 游戏模式就绪）";
         }
     }
-    "KuroCat"
+    "KeyboardKid"
 }
 
 pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
@@ -206,7 +206,7 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
     let reset_pos = MenuItem::with_id(app, "reset_pos", "重置位置到右下角", true, None::<&str>)?;
     #[cfg(windows)]
     let desktop_shortcut =
-        MenuItem::with_id(app, "desktop_shortcut", "创建桌面快捷方式 (KuroCat)", true, None::<&str>)?;
+        MenuItem::with_id(app, "desktop_shortcut", "创建桌面快捷方式 (KeyboardKid)", true, None::<&str>)?;
     #[cfg(target_os = "macos")]
     let mac_input_menu = {
         let mac_reconnect = MenuItem::with_id(
@@ -258,7 +258,7 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
-    let quit = MenuItem::with_id(app, "quit", "退出 KuroCat", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "退出 KeyboardKid", true, None::<&str>)?;
 
     let sep1 = PredefinedMenuItem::separator(app)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
@@ -442,7 +442,7 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
                     let _ = pause_guard.set_checked(next);
                     if let Some(tray) = app.tray_by_id("kuro-tray") {
                         let tip = if next {
-                            "KuroCat（已暂停监听 · 反作弊护航中）"
+                            "KeyboardKid（已暂停监听 · 反作弊护航中）"
                         } else {
                             default_tray_tooltip()
                         };

@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KuroCat</title>
+    <title>KeyboardKid</title>
   </head>
   <body>
     <canvas id="pet-canvas"></canvas>
     <canvas id="pet-canvas-3d" class="hidden"></canvas>
+
+    <div id="stats-hud" class="stats-hud" aria-live="polite">0 WPM · 今日 0</div>
 
     <div id="update-toast" class="update-toast hidden" role="status" aria-live="polite">
       <span class="update-toast-text" id="update-toast-text">✨ 新版本</span>
@@ -40,11 +42,12 @@
     </div>
 
     <div id="context-menu" class="context-menu hidden">
-      <div class="menu-header" id="menu-header">🐈‍⬛ KuroCat 小黑猫</div>
+      <div class="menu-header" id="menu-header">🧒 KeyboardKid</div>
       <div class="menu-scale-row">
         <span class="menu-scale-label">角色外观（支持 MCP 定制）</span>
         <div class="breed-pills" id="breed-pills">
-          <button class="breed-pill active" data-breed="black">🐈‍⬛ 小黑猫</button>
+          <button class="breed-pill active" data-breed="kid">🧒 KeyboardKid</button>
+          <button class="breed-pill" data-breed="black">🐈‍⬛ 小黑猫</button>
           <button class="breed-pill" data-breed="ragdoll">🐱 布偶猫</button>
           <button class="breed-pill" data-breed="dafeiyu">🐳 大肥鱼</button>
         </div>
@@ -90,6 +93,18 @@
       <button class="menu-item" data-action="toggle-sound">
         <span>摸头呼噜声</span>
         <span class="menu-check" id="chk-sound">✓</span>
+      </button>
+      <button class="menu-item" data-action="toggle-stats-hud">
+        <span>打字速度 / 今日统计</span>
+        <span class="menu-check" id="chk-stats-hud">✓</span>
+      </button>
+      <button class="menu-item" data-action="open-kid-assets">
+        <span>打开素材文件夹</span>
+        <span class="menu-hint">idle / privacy</span>
+      </button>
+      <button class="menu-item" data-action="reload-kid-assets">
+        <span>重新加载素材</span>
+        <span class="menu-hint" id="kid-assets-hint">内置</span>
       </button>
       <button class="menu-item" data-action="toggle-top">
         <span>始终置顶显示</span>
@@ -161,7 +176,7 @@
       <div class="menu-sep"></div>
       <button class="menu-item" data-action="desktop-shortcut" id="btn-desktop-shortcut">
         <span>创建桌面图标</span>
-        <span class="menu-hint" id="shortcut-hint">KuroCat</span>
+        <span class="menu-hint" id="shortcut-hint">KeyboardKid</span>
       </button>
       <button class="menu-item" data-action="reset-pos">
         <span>重置位置到右下角</span>
@@ -171,7 +186,7 @@
         <span class="menu-hint" id="update-hint">v5.1.0</span>
       </button>
       <button class="menu-item danger" data-action="quit">
-        <span>退出 KuroCat</span>
+        <span>退出 KeyboardKid</span>
       </button>
     </div>
 

@@ -558,10 +558,10 @@ pub fn init(app: AppHandle, x: i32, y: i32, w: u32, h: u32, always_on_top: bool)
 
     let (ready_tx, ready_rx) = std::sync::mpsc::channel::<bool>();
     let _ = std::thread::Builder::new()
-        .name("kurocat-win7-ulw".to_string())
+        .name("keyboardkid-win7-ulw".to_string())
         .spawn(move || {
-            let class_name: Vec<u16> = "KuroCatWin7LayeredClass\0".encode_utf16().collect();
-            let title: Vec<u16> = "KuroCat\0".encode_utf16().collect();
+            let class_name: Vec<u16> = "KeyboardKidWin7LayeredClass\0".encode_utf16().collect();
+            let title: Vec<u16> = "KeyboardKid\0".encode_utf16().collect();
             unsafe {
                 let hinst = GetModuleHandleW(std::ptr::null());
                 let wc = WNDCLASSEXW {
@@ -790,7 +790,7 @@ mod tests {
     #[test]
     fn dib_presenter_updates_real_win32_layered_window_with_ulw_alpha() {
         let class_name: Vec<u16> = "STATIC\0".encode_utf16().collect();
-        let title: Vec<u16> = "KuroCatULWUnitTest\0".encode_utf16().collect();
+        let title: Vec<u16> = "KeyboardKidULWUnitTest\0".encode_utf16().collect();
         unsafe {
             let hinst = GetModuleHandleW(std::ptr::null());
             let hwnd = CreateWindowExW(

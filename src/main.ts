@@ -18,6 +18,8 @@ import {
   type KeySpec,
 } from './keyboardLayout';
 import type { CollarColorId, KuroCatEngine3D } from './catEngine3d';
+import { typingStats } from './typingStats';
+import { loadKidAssetsFromDisk, openKidAssetsFolder, reloadKidAssets } from './kidAssets';
 
 type DesktopRenderMode = '2d' | '3d';
 type HeadphoneMode = 'auto' | 'on' | 'off';
@@ -139,7 +141,7 @@ let settings: AppSettings = {
   showKeyBubbles: true,
   soundEnabled: true,
   autostart: false,
-  catBreed: 'black',
+  catBreed: 'kid',
   mcpEnabled: true,
   mcpPort: 27420,
   keyboardLayout: '65',
@@ -147,7 +149,7 @@ let settings: AppSettings = {
   privacyPasswordGuard: true,
   tailKeyMode: 'smart',
   tailKeyIds: [...DEFAULT_TAIL_KEY_IDS],
-  renderMode: '3d',
+  renderMode: '2d',
   collarColor: 'none',
   headphoneMode: 'off',
 };
@@ -174,6 +176,29 @@ const btnTailCancelEl = document.getElementById('btn-tail-cancel') as HTMLButton
 const tailModeBadgeEl = document.getElementById('tail-mode-badge') as HTMLSpanElement;
 const tailKeysCountEl = document.getElementById('tail-keys-count') as HTMLSpanElement;
 const engine = new KuroCatEngine(canvas);
+const statsHudEl = document.getElementById('stats-hud') as HTMLDivElement;
+const chkStatsHudEl = document.getElementById('chk-stats-hud') as HTMLSpanElement | null;
+const kidAssetsHintEl = document.getElementById('kid-assets-hint') as HTMLSpanElement | null;
+
+function syncStatsHud(): void {
+  const visible = typingStats.isHudVisible();
+  statsHudEl.classList.toggle('hidden', !visible);
+  if (chkStatsHudEl) chkStatsHudEl.textContent = visible ? '✓' : '';
+  if (visible) {
+    statsHudEl.textContent = typingStats.formatHud();
+  }
+}
+
+async function applyKidAssetsFromDisk(reload = false): Promise<void> {
+  const map = reload ? await reloadKidAssets() : await loadKidAssetsFromDisk();
+  if (map) {
+    engine.applyKidAssets(map);
+    if (kidAssetsHintEl) kidAssetsHintEl.textContent = '自定义';
+  } else if (reload) {
+    engine.reloadKidBuiltinAssets();
+    if (kidAssetsHintEl) kidAssetsHintEl.textContent = '内置';
+  }
+}
 
 // Lazy-loaded Three.js 3D engine (NEVER imported when user stays in 2D mode -> +0 MB overhead!)
 let engine3d: KuroCatEngine3D | null = null;
@@ -185,7 +210,7 @@ let privacyActive = false;
 let gameActive = false;
 
 function shouldWearHeadphonesNow(): boolean {
-  if (settings.catBreed === 'dafeiyu') return false;
+  if (settings.catBreed === 'dafeiyu' || settings.catBreed === 'kid') return false;
   const hm: HeadphoneMode =
     settings.headphoneMode === 'auto' || settings.headphoneMode === 'on'
       ? settings.headphoneMode
@@ -199,6 +224,7 @@ function wants3DNow(): boolean {
   return (
     settings.renderMode !== '2d' &&
     settings.catBreed !== 'dafeiyu' &&
+    settings.catBreed !== 'kid' &&
     !tailPickerOpen &&
     !isWin7Ulw &&
     !webgl3dUnavailable
@@ -376,7 +402,10 @@ function syncMenuUI(): void {
   });
   const collarRowEl = document.getElementById('collar-row');
   if (collarRowEl) {
-    collarRowEl.classList.toggle('hidden', renderMode === '2d' || settings.catBreed === 'dafeiyu');
+    collarRowEl.classList.toggle(
+      'hidden',
+      renderMode === '2d' || settings.catBreed === 'dafeiyu' || settings.catBreed === 'kid',
+    );
   }
 
   const headphoneMode: HeadphoneMode =
@@ -388,18 +417,21 @@ function syncMenuUI(): void {
   });
   const headphoneRowEl = document.getElementById('headphone-row');
   if (headphoneRowEl) {
-    headphoneRowEl.classList.toggle('hidden', settings.catBreed === 'dafeiyu');
+    headphoneRowEl.classList.toggle(
+      'hidden',
+      settings.catBreed === 'dafeiyu' || settings.catBreed === 'kid',
+    );
   }
 
   const headerEl = document.getElementById('menu-header');
   if (headerEl && activeCat) {
-    const emoji = activeCat.emoji || '🐱';
-    headerEl.textContent = `${emoji} KuroCat ${activeCat.name}`;
-    headerEl.style.color = activeCat.accentColor || '#c8f538';
+    const emoji = activeCat.emoji || '🧒';
+    headerEl.textContent = `${emoji} KeyboardKid ${activeCat.name}`;
+    headerEl.style.color = activeCat.accentColor || '#f4a6b8';
   }
 
   engine.showKeyBubbles = settings.showKeyBubbles;
-  engine.setCatAppearance(activeCat?.id || 'black', activeCat);
+  engine.setCatAppearance(activeCat?.id || 'kid', activeCat);
   engine.setHeadphones(shouldWearHeadphonesNow());
   engine.setKeyboardConfig(kbLayout, kbOrient);
   engine.setTailKeyConfig(tailMode, tailIds);
@@ -823,6 +855,13 @@ async function triggerManualUpdateCheck(): Promise<void> {
 
 async function bootstrap(): Promise<void> {
   engine.start();
+  syncStatsHud();
+  window.setInterval(() => {
+    if (typingStats.isHudVisible()) {
+      statsHudEl.textContent = typingStats.formatHud();
+    }
+  }, 1000);
+  window.addEventListener('beforeunload', () => typingStats.flush());
 
   // Hide Windows-only desktop shortcut button on macOS
   if (/Mac/i.test(navigator.platform) || /Macintosh/i.test(navigator.userAgent)) {
@@ -846,6 +885,7 @@ async function bootstrap(): Promise<void> {
       setUpdateHint(`v${appVersion}`);
     }
     syncMenuUI();
+    void applyKidAssetsFromDisk(false);
   } catch (err) {
     console.error('Failed to load settings or cats:', err);
   }
@@ -1000,6 +1040,12 @@ async function bootstrap(): Promise<void> {
             }
           }
           break;
+        }
+        if (!p.repeat) {
+          typingStats.recordKey();
+          if (typingStats.isHudVisible()) {
+            statsHudEl.textContent = typingStats.formatHud();
+          }
         }
         if (active3d && engine3d) engine3d.onKeyDown(p.vk, p.repeat);
         else engine.onKeyDown(p.vk, p.repeat);
@@ -1227,6 +1273,20 @@ async function bootstrap(): Promise<void> {
         break;
       case 'toggle-sound':
         void applySettingsPatch({ soundEnabled: !settings.soundEnabled });
+        break;
+      case 'toggle-stats-hud':
+        typingStats.setHudVisible(!typingStats.isHudVisible());
+        syncStatsHud();
+        break;
+      case 'open-kid-assets':
+        void openKidAssetsFolder()
+          .then(() => {
+            if (kidAssetsHintEl) kidAssetsHintEl.textContent = '已打开';
+          })
+          .catch((err) => console.warn(err));
+        break;
+      case 'reload-kid-assets':
+        void applyKidAssetsFromDisk(true);
         break;
       case 'toggle-top':
         void applySettingsPatch({ alwaysOnTop: !settings.alwaysOnTop });

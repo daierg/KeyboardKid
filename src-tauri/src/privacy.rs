@@ -181,7 +181,7 @@ mod win_impl {
             // ES_PASSWORD (0x0020) is ONLY valid on Edit / RichEdit window classes!
             // On other Win32 controls (e.g. SysTreeView32 TVS_SHOWSELALWAYS, SysTabControl32
             // TCS_FORCELABELLEFT, Explorer/WPS widgets), bit 0x0020 has an unrelated meaning
-            // and would falsely lock KuroCat in closed-eyes password mode.
+            // and would falsely lock KeyboardKid in closed-eyes password mode.
             let mut cls_buf = [0u16; 128];
             let cls_len = GetClassNameW(info.hwndFocus, cls_buf.as_mut_ptr(), cls_buf.len() as i32);
             if cls_len <= 0 {
