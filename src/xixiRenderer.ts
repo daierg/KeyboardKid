@@ -6,7 +6,7 @@ import typingFastUrl from './assets/xixi/typing_fast.png';
 import handLeftUrl from './assets/xixi/hand_left.png';
 import handRightUrl from './assets/xixi/hand_right.png';
 
-/** Same layout contract as DaFeiYu — keyboard/mouse positioning shared with BigFish. */
+/** Layout contract for keyboard/mouse positioning shared with CatEngine. */
 export interface XiXiLayout {
   logicalW: number;
   kbCenterX: number;
@@ -52,7 +52,7 @@ function smoothstep(t: number): number {
 
 /**
  * 西西 — armless expression sprites + gray sleeves + photo hands over keyboard/mouse.
- * Uses DaFeiYu-style geom / body sway; no whale tail.
+ * Sprite body with procedural hands; no whale tail.
  */
 export class XiXiRenderer {
   private sprites: Record<ExprKey, HTMLImageElement>;

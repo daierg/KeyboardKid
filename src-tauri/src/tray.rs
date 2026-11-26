@@ -137,29 +137,25 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
     )?;
 
     let breed_xixi = MenuItem::with_id(app, "breed_xixi", "🎀 西西", true, None::<&str>)?;
-    let breed_kid = MenuItem::with_id(app, "breed_kid", "🧒 KeyboardKid", true, None::<&str>)?;
     let breed_black = MenuItem::with_id(app, "breed_black", "经典小黑猫", true, None::<&str>)?;
     let breed_ragdoll = MenuItem::with_id(app, "breed_ragdoll", "暖奶茶布偶猫", true, None::<&str>)?;
     let breed_orange = MenuItem::with_id(app, "breed_orange", "大橘猫（虎斑）", true, None::<&str>)?;
     let breed_calico = MenuItem::with_id(app, "breed_calico", "三花猫", true, None::<&str>)?;
     let breed_tuxedo = MenuItem::with_id(app, "breed_tuxedo", "奶牛猫", true, None::<&str>)?;
     let breed_siamese = MenuItem::with_id(app, "breed_siamese", "暹罗猫", true, None::<&str>)?;
-    let breed_dafeiyu = MenuItem::with_id(app, "breed_dafeiyu", "🐳 大肥鱼（鲸鱼娘）", true, None::<&str>)?;
     let breed_menu = Submenu::with_items(
         app,
         "角色外观",
         true,
         &[
             &breed_xixi,
-            &breed_kid,
-            &breed_black,
+                        &breed_black,
             &breed_ragdoll,
             &breed_orange,
             &breed_calico,
             &breed_tuxedo,
             &breed_siamese,
-            &breed_dafeiyu,
-        ],
+                    ],
     )?;
 
     let scale_25 = MenuItem::with_id(app, "scale_25", "25%（迷你）", true, None::<&str>)?;
@@ -591,14 +587,12 @@ pub fn setup_tray(app: &AppHandle, initial: &AppSettings) -> tauri::Result<()> {
                     let _ = app.emit("kuro-settings", s.clone());
                 }
                 "breed_xixi" => apply_breed_and_save(app, "xixi"),
-                "breed_kid" => apply_breed_and_save(app, "kid"),
                 "breed_black" => apply_breed_and_save(app, "black"),
                 "breed_ragdoll" => apply_breed_and_save(app, "ragdoll"),
                 "breed_orange" => apply_breed_and_save(app, "orange-tabby"),
                 "breed_calico" => apply_breed_and_save(app, "calico"),
                 "breed_tuxedo" => apply_breed_and_save(app, "tuxedo"),
                 "breed_siamese" => apply_breed_and_save(app, "siamese"),
-                "breed_dafeiyu" => apply_breed_and_save(app, "dafeiyu"),
                 "scale_25" => apply_scale_and_save(app, 0.25),
                 "scale_50" => apply_scale_and_save(app, 0.5),
                 "scale_75" => apply_scale_and_save(app, 0.75),

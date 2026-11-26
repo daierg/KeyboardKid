@@ -198,16 +198,6 @@ export const DEFAULT_BUILTIN_CATS: CatSkinConfig[] = [
     accentSideColor: '#d47890',
   },
   {
-    id: 'kid',
-    name: 'KeyboardKid',
-    emoji: '🧒',
-    builtin: true,
-    furColor: '#f5efe6',
-    eyeColorTop: '#4a3728',
-    accentColor: '#f4a6b8',
-    accentSideColor: '#d47890',
-  },
-  {
     id: 'black',
     name: '小黑猫',
     emoji: '🐈‍⬛',
@@ -226,15 +216,5 @@ export const DEFAULT_BUILTIN_CATS: CatSkinConfig[] = [
     eyeColorTop: '#2c5594',
     accentColor: '#7ac7ff',
     accentSideColor: '#4690d8',
-  },
-  {
-    id: 'dafeiyu',
-    name: '大肥鱼',
-    emoji: '🐳',
-    builtin: true,
-    furColor: '#2957a4',
-    eyeColorTop: '#2563eb',
-    accentColor: '#5cc8ff',
-    accentSideColor: '#2563eb',
   },
 ];

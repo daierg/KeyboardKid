@@ -59,7 +59,7 @@
 
           <div class="menu-sep"></div>
 
-          <button class="menu-item" data-action="toggle-privacy" title="检测到输入密码时猫猫自动闭眼、大肥鱼双手捂眼并隐藏全部按键">
+          <button class="menu-item" data-action="toggle-privacy" title="检测到输入密码时自动闭眼并隐藏按键气泡">
             <span>输密码自动闭眼防偷窥</span>
             <span class="menu-check" id="chk-privacy">✓</span>
           </button>
@@ -75,6 +75,18 @@
             <span>摸头呼噜声</span>
             <span class="menu-check" id="chk-sound">✓</span>
           </button>
+          <button class="menu-item" data-action="toggle-stats-hud">
+            <span>显示打字速度</span>
+            <span class="menu-check" id="chk-stats-hud">✓</span>
+          </button>
+          <div class="menu-item menu-item-static" aria-hidden="true">
+            <span>今日输入</span>
+            <span class="menu-hint" id="stats-today-chars">0 字</span>
+          </div>
+          <div class="menu-item menu-item-static" aria-hidden="true">
+            <span>今日最快</span>
+            <span class="menu-hint" id="stats-today-peak">0 字/分</span>
+          </div>
           <button class="menu-item" data-action="toggle-top">
             <span>始终置顶显示</span>
             <span class="menu-check" id="chk-top">✓</span>

@@ -634,6 +634,89 @@ html.win7-ulw-mode #collar-row {
   background: rgba(255, 92, 92, 0.25);
 }
 
+.update-speech-bubble {
+  position: fixed;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  z-index: 9997;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: min(240px, calc(100vw - 28px));
+  padding: 10px 8px 12px 14px;
+  border: 2px solid #2a2430;
+  border-radius: 16px;
+  background: #fff8f0;
+  color: #2a2430;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  animation: speechPop 0.22s ease-out;
+  pointer-events: auto;
+}
+
+.update-speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 14px;
+  height: 14px;
+  transform: translateX(-50%) rotate(45deg);
+  background: #fff8f0;
+  border-right: 2px solid #2a2430;
+  border-bottom: 2px solid #2a2430;
+}
+
+.update-speech-bubble.hidden {
+  display: none;
+}
+
+.update-speech-main {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.update-speech-main:hover {
+  filter: brightness(1.05);
+}
+
+.update-speech-close {
+  border: none;
+  background: transparent;
+  color: rgba(42, 36, 48, 0.55);
+  font-size: 14px;
+  line-height: 1;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.update-speech-close:hover {
+  background: rgba(42, 36, 48, 0.08);
+  color: #2a2430;
+}
+
+@keyframes speechPop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -42%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .update-toast {
   position: fixed;
   top: 10px;

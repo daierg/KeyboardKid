@@ -79,9 +79,25 @@ export class TypingStats {
   private lastKeyAt = -10000;
   private lastPersistAt = 0;
   private hudVisible = true;
+  private midnightTimer: number | null = null;
 
   constructor() {
     this.rolloverIfNeeded();
+    this.armMidnightTimer();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.ensureToday();
+          this.armMidnightTimer();
+        }
+      });
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', () => {
+        this.ensureToday();
+        this.armMidnightTimer();
+      });
+    }
   }
 
   public setHudVisible(v: boolean): void {
@@ -168,6 +184,42 @@ export class TypingStats {
 
   public formatMenuPeak(): string {
     return `${this.snapshot().todayPeakCpm} 字/分`;
+  }
+
+  /**
+   * Re-read disk + roll calendar day. Call on menu open / midnight / HUD tick
+   * so multi-webview memory cannot keep showing yesterday's "today" counters.
+   */
+  public ensureToday(): void {
+    const disk = loadPersisted();
+    // Prefer fresher disk snapshot when another window already rolled or typed.
+    if (disk.day > this.persisted.day) {
+      this.persisted = disk;
+    } else if (disk.day === this.persisted.day) {
+      this.persisted.todayChars = Math.max(this.persisted.todayChars, disk.todayChars);
+      this.persisted.todayPeakCpm = Math.max(this.persisted.todayPeakCpm, disk.todayPeakCpm);
+      this.persisted.todayActiveMs = Math.max(this.persisted.todayActiveMs, disk.todayActiveMs);
+      this.persisted.history = { ...disk.history, ...this.persisted.history };
+    } else {
+      // In-memory is ahead of disk day (we rolled locally); keep memory, still rollover below.
+    }
+    this.rolloverIfNeeded();
+  }
+
+  private armMidnightTimer(): void {
+    if (typeof window === 'undefined') return;
+    if (this.midnightTimer !== null) {
+      window.clearTimeout(this.midnightTimer);
+      this.midnightTimer = null;
+    }
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1, 0);
+    const delay = Math.max(250, next.getTime() - now.getTime());
+    this.midnightTimer = window.setTimeout(() => {
+      this.ensureToday();
+      this.flush();
+      this.armMidnightTimer();
+    }, delay);
   }
 
   private instantCpm(now: number): number {

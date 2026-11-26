@@ -1,9 +1,10 @@
 import './style.css';
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
+import { emit, listen } from '@tauri-apps/api/event';
 import { DEFAULT_TAIL_KEY_IDS, type KeyboardOrientation, type TailKeyMode } from './catEngine';
 import { DEFAULT_BUILTIN_CATS, type CatSkinConfig } from './catSkins';
 import type { KeyboardLayoutId } from './keyboardLayout';
+import { typingStats } from './typingStats';
 
 interface AppSettings {
   x: number | null;
@@ -69,7 +70,7 @@ let settings: AppSettings = {
   clickThroughLocked: false,
   showKeyBubbles: true,
   soundEnabled: true,
-  autostart: false,
+  autostart: true,
   catBreed: 'black',
   mcpEnabled: true,
   mcpPort: 27420,
@@ -173,15 +174,23 @@ function syncUI(): void {
     if (el) el.textContent = on ? '✓' : '';
   };
 
+  typingStats.ensureToday();
+
   setCheck('chk-privacy', settings.privacyPasswordGuard !== false);
   setCheck('chk-bubbles', settings.showKeyBubbles);
   setCheck('chk-lock', settings.clickThroughLocked);
   setCheck('chk-sound', settings.soundEnabled);
+  setCheck('chk-stats-hud', typingStats.isHudVisible());
   setCheck('chk-top', settings.alwaysOnTop);
   setCheck('chk-autostart', settings.autostart);
   setCheck('chk-mcp', settings.mcpEnabled);
   setCheck('chk-obs', Boolean(settings.obsEnabled));
   setCheck('chk-obs-hide', Boolean(settings.obsEnabled && settings.obsHidePet));
+
+  const statsTodayCharsEl = document.getElementById('stats-today-chars');
+  const statsTodayPeakEl = document.getElementById('stats-today-peak');
+  if (statsTodayCharsEl) statsTodayCharsEl.textContent = typingStats.formatMenuTodayChars();
+  if (statsTodayPeakEl) statsTodayPeakEl.textContent = typingStats.formatMenuPeak();
 
   if (btnObsHideEl) {
     btnObsHideEl.classList.toggle('hidden', !settings.obsEnabled);
@@ -240,7 +249,7 @@ function syncUI(): void {
   });
   const collarRowEl = document.getElementById('collar-row');
   if (collarRowEl) {
-    collarRowEl.classList.toggle('hidden', renderMode === '2d' || settings.catBreed === 'dafeiyu');
+    collarRowEl.classList.toggle('hidden', renderMode === '2d' || settings.catBreed === 'xixi');
   }
 
   const headphoneMode =
@@ -252,7 +261,7 @@ function syncUI(): void {
   });
   const headphoneRowEl = document.getElementById('headphone-row');
   if (headphoneRowEl) {
-    headphoneRowEl.classList.toggle('hidden', settings.catBreed === 'dafeiyu');
+    headphoneRowEl.classList.toggle('hidden', settings.catBreed === 'xixi');
   }
 
   const headerEl = document.getElementById('menu-header');
@@ -551,6 +560,12 @@ async function bootstrap(): Promise<void> {
       case 'toggle-sound':
         void applySettingsPatch({ soundEnabled: !settings.soundEnabled });
         break;
+      case 'toggle-stats-hud': {
+        typingStats.setHudVisible(!typingStats.isHudVisible());
+        syncUI();
+        void emit('kuro-stats-hud-changed', typingStats.isHudVisible());
+        break;
+      }
       case 'toggle-top':
         void applySettingsPatch({ alwaysOnTop: !settings.alwaysOnTop });
         break;
@@ -628,6 +643,8 @@ async function bootstrap(): Promise<void> {
   });
 
   await listen('kuro-menu-opened', async () => {
+    // Always roll stats even if settings fetch fails — otherwise yesterday's labels linger.
+    typingStats.ensureToday();
     try {
       const [latestSettings, latestCats, cachedUpd] = await Promise.all([
         invoke<AppSettings>('get_settings'),
@@ -644,7 +661,9 @@ async function bootstrap(): Promise<void> {
       syncUI();
       renderFooterUpdateState();
       if (tabBodyEl) tabBodyEl.scrollTop = 0;
-    } catch {}
+    } catch {
+      syncUI();
+    }
   });
 }
 

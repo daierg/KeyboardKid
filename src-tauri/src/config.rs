@@ -199,7 +199,7 @@ impl Default for AppSettings {
             click_through_locked: false,
             show_key_bubbles: true,
             sound_enabled: true,
-            autostart: false,
+            autostart: true,
             cat_breed: default_cat_breed(),
             mcp_enabled: default_mcp_enabled(),
             mcp_port: default_mcp_port(),
@@ -258,6 +258,10 @@ pub fn load_settings() -> AppSettings {
             parsed.render_mode = normalize_render_mode(&parsed.render_mode);
             parsed.collar_color = normalize_collar_color(&parsed.collar_color);
             parsed.headphone_mode = normalize_headphone_mode(&parsed.headphone_mode);
+            // Retired skins: migrate saved preference to Xixi.
+            if parsed.cat_breed == "kid" || parsed.cat_breed == "dafeiyu" {
+                parsed.cat_breed = default_cat_breed();
+            }
             return parsed;
         }
     }

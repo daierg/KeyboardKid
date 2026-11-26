@@ -19,6 +19,15 @@
       <button class="update-toast-close" id="btn-toast-close" type="button" title="关闭">×</button>
     </div>
 
+    <div id="update-speech-bubble" class="update-speech-bubble hidden" role="status" aria-live="polite">
+      <button class="update-speech-main" id="btn-speech-update" type="button" title="点击更新">
+        斯哥让你更新软件
+      </button>
+      <button class="update-speech-close" id="btn-speech-close" type="button" title="稍后提醒" aria-label="关闭">
+        ×
+      </button>
+    </div>
+
     <div id="tail-picker-bar" class="tail-picker-bar hidden" role="dialog" aria-label="自定义尾巴按键">
       <button
         class="tail-picker-close"
@@ -47,10 +56,8 @@
         <span class="menu-scale-label">角色外观（支持 MCP 定制）</span>
         <div class="breed-pills" id="breed-pills">
           <button class="breed-pill active" data-breed="xixi">🎀 西西</button>
-          <button class="breed-pill" data-breed="kid">🧒 KeyboardKid</button>
           <button class="breed-pill" data-breed="black">🐈‍⬛ 小黑猫</button>
           <button class="breed-pill" data-breed="ragdoll">🐱 布偶猫</button>
-          <button class="breed-pill" data-breed="dafeiyu">🐳 大肥鱼</button>
         </div>
       </div>
       <div class="menu-scale-row" id="render-mode-row">
@@ -79,7 +86,7 @@
         </div>
       </div>
       <div class="menu-sep"></div>
-      <button class="menu-item" data-action="toggle-privacy" title="检测到输入密码时猫猫自动闭眼、大肥鱼双手捂眼并隐藏全部按键">
+      <button class="menu-item" data-action="toggle-privacy" title="检测到输入密码时猫猫自动闭眼并隐藏全部按键">
         <span>输密码自动闭眼防偷窥</span>
         <span class="menu-check" id="chk-privacy">✓</span>
       </button>
@@ -107,14 +114,6 @@
         <span>今日最快</span>
         <span class="menu-hint" id="stats-today-peak">0 字/分</span>
       </div>
-      <button class="menu-item" data-action="open-kid-assets">
-        <span>打开素材文件夹</span>
-        <span class="menu-hint">idle / privacy</span>
-      </button>
-      <button class="menu-item" data-action="reload-kid-assets">
-        <span>重新加载素材</span>
-        <span class="menu-hint" id="kid-assets-hint">内置</span>
-      </button>
       <button class="menu-item" data-action="toggle-top">
         <span>始终置顶显示</span>
         <span class="menu-check" id="chk-top">✓</span>

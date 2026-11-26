@@ -4,7 +4,6 @@ mod cats;
 mod config;
 mod game_detect;
 mod input_hook;
-mod kid_assets;
 #[cfg(target_os = "macos")]
 mod macos_window;
 mod mcp;
@@ -284,16 +283,6 @@ struct TailPickerBounds {
 }
 
 #[tauri::command]
-fn get_kid_assets() -> Result<kid_assets::KidAssetsPayload, String> {
-    kid_assets::load_kid_assets()
-}
-
-#[tauri::command]
-fn open_kid_assets_folder() -> Result<String, String> {
-    kid_assets::open_kid_assets_folder()
-}
-
-#[tauri::command]
 fn get_settings(state: State<'_, AppState>) -> AppSettings {
     state.settings.lock().unwrap().clone()
 }
@@ -333,7 +322,7 @@ fn update_settings(app: AppHandle, state: State<'_, AppState>, mut patch: AppSet
     patch.cat_breed = if cat_exists(&clean_breed) {
         clean_breed
     } else {
-        "black".to_string()
+        "xixi".to_string()
     };
     if patch.mcp_port == 0 {
         patch.mcp_port = 27420;
@@ -962,7 +951,7 @@ pub fn apply_breed_and_save(app: &AppHandle, breed: &str) {
     let normalized = if cat_exists(&clean) {
         clean
     } else {
-        "black".to_string()
+        "xixi".to_string()
     };
     let state = app.state::<AppState>();
     let updated = {
@@ -1655,6 +1644,11 @@ pub(crate) fn banner_hit_ry_limit(win_log_h: f64) -> f64 {
     (54.0 / win_log_h.max(1.0)).clamp(0.19, 0.55)
 }
 
+/// Mouth speech-bubble band (normalized Y) when an update prompt is showing.
+pub(crate) fn banner_speech_hit_range() -> (f64, f64) {
+    (0.28, 0.58)
+}
+
 fn start_hit_test_loop(
     app: AppHandle,
     settings: Arc<Mutex<AppSettings>>,
@@ -1881,7 +1875,10 @@ fn start_hit_test_loop(
                 win7_layered::set_over_cat(over_cat);
             }
 
-            let over_banner = is_banner && inside && ry <= banner_hit_ry_limit(win_log_h);
+            let (speech_y0, speech_y1) = banner_speech_hit_range();
+            let over_banner = is_banner
+                && inside
+                && (ry <= banner_hit_ry_limit(win_log_h) || (ry >= speech_y0 && ry <= speech_y1));
             // The picker lives inside the pet window, unlike the separate side menu.
             let over_tail_picker =
                 inside && tail_picker_captures_cursor(picker_bounds, rx, ry, !is_win7_ulw);
@@ -2258,11 +2255,19 @@ pub fn run() {
         linux_configure_display_env();
     }
 
+    let settings_path = config_path();
+    let first_run = !settings_path.exists();
     let mut initial_settings = load_settings();
     // Respect persisted `clickThroughLocked` across restarts (Issue #41).
     // Emergency CLI escape hatch: launching with `--unlock` clears click-through lock immediately.
     if std::env::args().any(|a| a == "--unlock") && initial_settings.click_through_locked {
         initial_settings.click_through_locked = false;
+        save_settings(&initial_settings);
+    }
+    // Fresh install: default autostart=true and write the OS login item once settings file is created.
+    if first_run {
+        initial_settings.autostart = true;
+        let _ = set_windows_autostart(true);
         save_settings(&initial_settings);
     }
     let settings_arc = Arc::new(Mutex::new(initial_settings.clone()));
@@ -2471,8 +2476,6 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_settings,
-            get_kid_assets,
-            open_kid_assets_folder,
             get_cats,
             get_game_active,
             get_mcp_config,

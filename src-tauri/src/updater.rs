@@ -3,9 +3,8 @@ use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 use tauri::{AppHandle, Emitter};
 
-const QIANYI_API_LATEST: &str = "https://qianyi.one/keyboardkid/releases/latest.json";
-const REPO_API_LATEST: &str = "https://api.github.com/repos/qianyiai/keyboardkid/releases/latest";
-const REPO_RELEASES_PAGE: &str = "https://github.com/qianyiai/keyboardkid/releases/latest";
+const REPO_API_LATEST: &str = "https://api.github.com/repos/daierg/KeyboardKid/releases/latest";
+const REPO_RELEASES_PAGE: &str = "https://github.com/daierg/KeyboardKid/releases/latest";
 
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -606,13 +605,6 @@ fn fetch_json_from_url(url: &str, accept: Option<&str>, timeout_ms: i32) -> Resu
 
 #[cfg(windows)]
 fn fetch_latest_release_json() -> Result<String, String> {
-    // Primary: fast domestic CDN mirror (no proxy needed, zero GitHub API rate limit)
-    if let Ok(text) = fetch_json_from_url(QIANYI_API_LATEST, Some("Accept: application/json\r\n"), 8_000) {
-        if serde_json::from_str::<GhRelease>(&text).is_ok() {
-            return Ok(text);
-        }
-    }
-    // Fallback: official GitHub Releases API
     fetch_json_from_url(
         REPO_API_LATEST,
         Some("Accept: application/vnd.github+json\r\n"),
@@ -663,13 +655,6 @@ fn fetch_json_from_url(url: &str, accept: &str, connect_secs: &str, max_secs: &s
 
 #[cfg(not(windows))]
 fn fetch_latest_release_json() -> Result<String, String> {
-    // Primary: fast domestic CDN mirror (no proxy needed, zero GitHub API rate limit)
-    if let Ok(text) = fetch_json_from_url(QIANYI_API_LATEST, "Accept: application/json", "5", "9") {
-        if serde_json::from_str::<GhRelease>(&text).is_ok() {
-            return Ok(text);
-        }
-    }
-    // Fallback: official GitHub Releases API
     fetch_json_from_url(REPO_API_LATEST, "Accept: application/vnd.github+json", "10", "20")
 }
 
@@ -1112,8 +1097,8 @@ pub fn start_background_update_checker(app: AppHandle) {
                     );
                 }
             }
-            // Re-check every 6 hours while running
-            std::thread::sleep(std::time::Duration::from_secs(6 * 3600));
+            // Re-check every 4 hours while running
+            std::thread::sleep(std::time::Duration::from_secs(4 * 3600));
         }
     });
 }
@@ -1142,30 +1127,30 @@ mod tests {
     }
 
     #[test]
-    fn qianyi_mirror_latest_json_parses_assets_and_digest() {
+    fn github_release_json_parses_assets_and_digest() {
         let sample = r#"{
             "tag_name": "v9.9.9",
-            "html_url": "https://qianyi.one/keyboardkid/",
+            "html_url": "https://github.com/daierg/KeyboardKid/releases/tag/v9.9.9",
             "body": "Performance & UX update",
             "assets": [
                 {
                     "name": "KeyboardKid-9.9.9-x64-setup.exe",
-                    "browser_download_url": "https://qianyi.one/keyboardkid/releases/v9.9.9/KeyboardKid-9.9.9-x64-setup.exe",
+                    "browser_download_url": "https://github.com/daierg/KeyboardKid/releases/download/v9.9.9/KeyboardKid-9.9.9-x64-setup.exe",
                     "size": 2250000,
                     "digest": "sha256:05c1be2c444f5303770f6d59e216bc0ed7b69321fc44368e4ec231405570f950"
                 },
                 {
                     "name": "KeyboardKid-9.9.9-macos-universal.app.tar.gz",
-                    "browser_download_url": "https://qianyi.one/keyboardkid/releases/v9.9.9/KeyboardKid-9.9.9-macos-universal.app.tar.gz",
+                    "browser_download_url": "https://github.com/daierg/KeyboardKid/releases/download/v9.9.9/KeyboardKid-9.9.9-macos-universal.app.tar.gz",
                     "size": 3100000,
                     "digest": "sha256:05c1be2c444f5303770f6d59e216bc0ed7b69321fc44368e4ec231405570f950"
                 }
             ]
         }"#;
-        let rel: GhRelease = serde_json::from_str(sample).expect("parse mirror json");
+        let rel: GhRelease = serde_json::from_str(sample).expect("parse github json");
         assert!(is_newer_version(&rel.tag_name, CURRENT_VERSION));
         let win_asset = select_asset(&rel.assets, "windows-nsis").expect("select win nsis");
-        assert!(win_asset.browser_download_url.starts_with("https://qianyi.one/"));
+        assert!(win_asset.browser_download_url.contains("daierg/KeyboardKid"));
         assert_eq!(
             extract_sha256(&win_asset.digest).as_deref(),
             Some("05c1be2c444f5303770f6d59e216bc0ed7b69321fc44368e4ec231405570f950")
@@ -1199,11 +1184,11 @@ mod tests {
     #[test]
     fn http_url_parser_handles_github_endpoints() {
         let (https, host, port, path) =
-            parse_http_url("https://api.github.com/repos/qianyiai/keyboardkid/releases/latest").unwrap();
+            parse_http_url("https://api.github.com/repos/daierg/KeyboardKid/releases/latest").unwrap();
         assert!(https);
         assert_eq!(host, "api.github.com");
         assert_eq!(port, 443);
-        assert_eq!(path, "/repos/qianyiai/keyboardkid/releases/latest");
+        assert_eq!(path, "/repos/daierg/KeyboardKid/releases/latest");
 
         let (https2, host2, port2, path2) =
             parse_http_url("http://127.0.0.1:8080/dl?v=1").unwrap();
