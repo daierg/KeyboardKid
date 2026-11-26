@@ -1,6 +1,6 @@
 {
   "name": "keyboard-kid",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "private": true,
   "description": "KeyboardKid — transparent desktop typing companion (photo cutout MVP)",
   "type": "module",

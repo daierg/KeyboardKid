@@ -8,7 +8,7 @@
   <a href="./README.ja.md">日本語</a>
 </p>
 
-**当前版本：[`v1.0.1`](https://github.com/daierg/KeyboardKid/releases/tag/v1.0.1)**  
+**当前版本：[`v1.0.3`](https://github.com/daierg/KeyboardKid/releases/tag/v1.0.3)**  
 仓库：https://github.com/daierg/KeyboardKid
 
 透明置顶、跟随键盘/鼠标的桌面伴侣。默认皮肤为 **西西**（多表情整图 + 程序手臂），并保留经典手绘猫皮肤切换。Windows 安装后默认开机自启，应用内可检测本仓库 Releases 并提示更新。
@@ -17,7 +17,7 @@
 
 到 [Releases](https://github.com/daierg/KeyboardKid/releases) 获取安装包。Windows 推荐：
 
-- **`KeyboardKid-1.0.1-x64-setup.exe`**（NSIS 安装器）
+- **`KeyboardKid-1.0.3-x64-setup.exe`**（NSIS 安装器）
 
 安装后若浏览器或 SmartScreen 提示「未知发布者」，选「仍要运行 / 保留」即可（开源未购买商业代码签名）。
 
@@ -31,7 +31,13 @@
 | 输密码防偷窥 | 检测到密码框时闭眼并隐藏按键气泡 |
 | 开机自启 | **新安装默认开启**；侧栏/托盘可关闭 |
 | 应用内更新 | 启动约 8 秒后检测，之后每 **4 小时**再检；有更新时嘴边气泡「斯哥让你更新软件」 |
-| 其他 | 置顶、穿透锁定、缩放、65%/108 键、OBS 透明源、MCP 等（继承自 KuroCat） |
+| 多语言 | 简中 / 繁中 / 英 / 日 / 韩（跟随系统或手动切换） |
+| 帧率与省电 | 60/30 FPS；菜单闲置约 25s 销毁 WebView；深度睡眠可修剪工作集 |
+| 起床气 | 睡着被突然吵醒会短暂闹脾气，摸头可消气（2D/3D） |
+| AI 伴侣 / Hook | MCP `set_agent_status` / `trigger_action`，以及 `--hook` / HTTP `/hook` |
+| MCP 轮廓 | `faceShape` 等轮廓字段；`patch_cat` 热更新 |
+| 单实例 | 重复启动会唤醒已有进程（Win mutex / Unix flock） |
+| 其他 | 置顶、穿透锁定、缩放、65%/108 键、OBS 透明源、音频插拔恢复等 |
 
 旧版 `kid` / `dafeiyu`（大肥鱼）皮肤已下架；若本地配置仍保存这些品种，启动时会自动落到 **西西**。
 
@@ -80,12 +86,11 @@ npm run tauri:build
 
 默认西西素材目录与规范见 [docs/ASSET_GUIDE.md](docs/ASSET_GUIDE.md)。
 
-## 版本说明（v1.0.1）
+## 版本说明（v1.0.3）
 
-- 修复经典猫切换失败（恢复 builtin 皮肤目录）
-- 今日输入统计按自然日清零（含午夜/休眠补强）
-- 新安装默认开机自启
-- 更新源改为 `daierg/KeyboardKid`，检测间隔 4 小时，嘴边更新气泡
+- 合入上游 KuroCat **v5.1.1 / v5.1.2** 桌面端能力（i18n、FPS/内存、起床气、macOS TCC 重置、AI 伴侣 Hook、MCP 轮廓、单实例、跨平台修复等）
+- 保留 KeyboardKid 分叉：西西默认皮肤、打字统计、更新源 `daierg/KeyboardKid`、嘴边「斯哥让你更新软件」、默认开机自启
+- 不上游官网/Android；不下架的大肥鱼专属能力不回迁
 
 ## 上游与许可
 

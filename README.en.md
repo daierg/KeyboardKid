@@ -8,7 +8,7 @@ A desktop typing companion forked from [qianyiai/kurocat](https://github.com/qia
   <a href="./README.ja.md">日本語</a>
 </p>
 
-**Current release: [`v1.0.1`](https://github.com/daierg/KeyboardKid/releases/tag/v1.0.1)**  
+**Current release: [`v1.0.3`](https://github.com/daierg/KeyboardKid/releases/tag/v1.0.3)**  
 Repo: https://github.com/daierg/KeyboardKid
 
 Transparent, always-on-top companion that reacts to keyboard and mouse. Default skin is **Xixi (西西)** (multi-expression sprites + procedural arms), with classic hand-drawn cat skins still available. Fresh Windows installs enable **login autostart** by default. In-app updates check **this** repository’s GitHub Releases.
@@ -17,7 +17,7 @@ Transparent, always-on-top companion that reacts to keyboard and mouse. Default 
 
 Get installers from [Releases](https://github.com/daierg/KeyboardKid/releases). Windows:
 
-- **`KeyboardKid-1.0.1-x64-setup.exe`** (NSIS)
+- **`KeyboardKid-1.0.3-x64-setup.exe`** (NSIS)
 
 If SmartScreen warns about an unknown publisher, choose **Run anyway / Keep** (open-source build without a commercial code-signing cert).
 
@@ -31,7 +31,13 @@ If SmartScreen warns about an unknown publisher, choose **Run anyway / Keep** (o
 | Password privacy | Closes eyes and hides key bubbles when a password field is detected |
 | Autostart | **On by default for new installs**; toggle in menu / tray |
 | In-app update | Check ~8s after launch, then every **4 hours**; mouth bubble: “斯哥让你更新软件” |
-| More | Always-on-top, click-through lock, scale, 65%/108 keyboard, OBS source, MCP (from KuroCat) |
+| i18n | zh-CN / zh-TW / en-US / ja-JP / ko-KR (system or manual) |
+| FPS & idle | 60/30 FPS; menu WebView disposed after ~25s idle; deep-sleep working-set trim |
+| Wake grump | Abrupt wake from sleep briefly angers the pet; petting calms it (2D/3D) |
+| AI companion / hooks | MCP `set_agent_status` / `trigger_action`, plus `--hook` and HTTP `/hook` |
+| MCP contour | `faceShape` and related fields; live `patch_cat` |
+| Single instance | Second launch wakes the existing process |
+| More | Always-on-top, click-through lock, scale, 65%/108 keyboard, OBS, audio device restore, etc. |
 
 Retired skins `kid` and `dafeiyu` (BigFish) were removed. Saved preferences for those IDs fall back to **Xixi**.
 
@@ -77,12 +83,11 @@ Usually none. On stripped images without WebView2, install the [WebView2 Runtime
 
 See [docs/ASSET_GUIDE.md](docs/ASSET_GUIDE.md) for the Xixi sprite layout.
 
-## v1.0.1 notes
+## v1.0.3 notes
 
-- Restored classic builtin skins (breed switch fixed)
-- Daily typing stats rollover (midnight + wake hardening)
-- Default login autostart on fresh install
-- Update feed → `daierg/KeyboardKid`, 4h interval, mouth update bubble
+- Ported KuroCat **v5.1.1 / v5.1.2** desktop features (i18n, FPS/memory, wake-anger, macOS TCC reset, AI companion hooks, MCP contour, single-instance, cross-platform fixes)
+- Kept KeyboardKid deltas: Xixi default, typing stats, update feed `daierg/KeyboardKid`, mouth bubble「斯哥让你更新软件」, default autostart
+- Skipped upstream website/Android and retired BigFish-only work
 
 ## Upstream & license
 

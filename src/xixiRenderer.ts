@@ -16,6 +16,8 @@ export interface XiXiLayout {
   kbTiltRad: number;
   mouseBtnX: number;
   mouseBtnY: number;
+  /** Optional gaze target in logical coords (from engine pointer). */
+  cursor?: { x: number; y: number } | null;
   mouseNX: number;
   mouseLeft: boolean;
   mouseRight: boolean;
