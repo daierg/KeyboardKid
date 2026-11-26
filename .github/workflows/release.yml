@@ -71,7 +71,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: false
           files: |
             KeyboardKid-*-x64-setup.exe
 
@@ -152,7 +152,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: false
           files: |
             KeyboardKid-*-macos-universal.dmg
             KeyboardKid-*-macos-universal.app.tar.gz
@@ -266,7 +266,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: false
           files: |
             KeyboardKid-*-linux-${{ matrix.arch }}.deb
             KeyboardKid-*-linux-${{ matrix.arch }}.AppImage
